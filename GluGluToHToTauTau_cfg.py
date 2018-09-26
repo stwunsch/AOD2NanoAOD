@@ -1,7 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from RecoMuon.TrackingTools.MuonServiceProxy_cff import *
-import FWCore.PythonUtilities.LumiList as LumiList
-import FWCore.ParameterSet.Types as CfgTypes
+import FWCore.Utilities.FileUtils as FileUtils
 process = cms.Process("AOD2NanoAOD")
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
@@ -15,7 +13,6 @@ process.options = cms.untracked.PSet(wantSummary=cms.untracked.bool(True))
 process.maxEvents = cms.untracked.PSet(input=cms.untracked.int32(1000))
 
 # Define files of dataset
-import FWCore.Utilities.FileUtils as FileUtils
 files = FileUtils.loadListFromFile(
     "data/CMS_MonteCarlo2012_Summer12_DR53X_GluGluToHToTauTau_M-125_8TeV-powheg-pythia6-tauPolarOff_AODSIM_PU_S10_START53_V19-v1_00000_file_index.txt")
 process.source = cms.Source(
