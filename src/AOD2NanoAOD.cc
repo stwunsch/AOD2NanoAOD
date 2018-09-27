@@ -232,28 +232,34 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   Handle<MuonCollection> muons;
   iEvent.getByLabel(InputTag("muons"), muons);
 
-  value_mu_n = muons->size();
+  value_mu_n = 0;
+  const float mu_min_pt = 3;
   for (auto it = muons->begin(); it != muons->end(); it++) {
-    const auto idx = it - muons->begin();
-    value_mu_pt[idx] = it->pt();
-    value_mu_eta[idx] = it->eta();
-    value_mu_phi[idx] = it->phi();
-    value_mu_charge[idx] = it->charge();
-    value_mu_mass[idx] = it->mass();
+    if (it->pt() > mu_min_pt) {
+      value_mu_pt[value_mu_n] = it->pt();
+      value_mu_eta[value_mu_n] = it->eta();
+      value_mu_phi[value_mu_n] = it->phi();
+      value_mu_charge[value_mu_n] = it->charge();
+      value_mu_mass[value_mu_n] = it->mass();
+      value_mu_n++;
+    }
   }
 
   // Electrons
   Handle<GsfElectronCollection> electrons;
   iEvent.getByLabel(InputTag("gsfElectrons"), electrons);
 
-  value_el_n = electrons->size();
+  value_el_n = 0;
+  const float el_min_pt = 5;
   for (auto it = electrons->begin(); it != electrons->end(); it++) {
-    const auto idx = it - electrons->begin();
-    value_el_pt[idx] = it->pt();
-    value_el_eta[idx] = it->eta();
-    value_el_phi[idx] = it->phi();
-    value_el_charge[idx] = it->charge();
-    value_el_mass[idx] = it->mass();
+    if (it->pt() > el_min_pt) {
+      value_el_pt[value_el_n] = it->pt();
+      value_el_eta[value_el_n] = it->eta();
+      value_el_phi[value_el_n] = it->phi();
+      value_el_charge[value_el_n] = it->charge();
+      value_el_mass[value_el_n] = it->mass();
+      value_el_n++;
+    }
   }
 
   // Taus
@@ -278,14 +284,17 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   Handle<PhotonCollection> photons;
   iEvent.getByLabel(InputTag("photons"), photons);
 
-  value_ph_n = photons->size();
+  value_ph_n = 0;
+  const float ph_min_pt = 5;
   for (auto it = photons->begin(); it != photons->end(); it++) {
-    const auto idx = it - photons->begin();
-    value_ph_pt[idx] = it->pt();
-    value_ph_eta[idx] = it->eta();
-    value_ph_phi[idx] = it->phi();
-    value_ph_charge[idx] = it->charge();
-    value_ph_mass[idx] = it->mass();
+    if (it->pt() > ph_min_pt) {
+      value_ph_pt[value_ph_n] = it->pt();
+      value_ph_eta[value_ph_n] = it->eta();
+      value_ph_phi[value_ph_n] = it->phi();
+      value_ph_charge[value_ph_n] = it->charge();
+      value_ph_mass[value_ph_n] = it->mass();
+      value_ph_n++;
+    }
   }
 
   // MET
