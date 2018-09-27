@@ -138,6 +138,7 @@ private:
   float value_jet_mass[max_jet];
 
   // Generator particles
+  /*
   const static int max_gen = 1000;
   UInt_t value_gen_n;
   float value_gen_pt[max_gen];
@@ -145,6 +146,7 @@ private:
   float value_gen_phi[max_gen];
   float value_gen_mass[max_gen];
   int value_gen_pdgid[max_gen];
+  */
 };
 
 AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
@@ -220,12 +222,14 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Jet_mass", value_jet_mass, "Jet_mass[nJet]/F");
 
   // Generator particles
+  /*
   tree->Branch("nGenPart", &value_gen_n, "nGenPart/i");
   tree->Branch("GenPart_pt", value_gen_pt, "GenPart_pt[nGenPart]/F");
   tree->Branch("GenPart_eta", value_gen_eta, "GenPart_eta[nGenPart]/F");
   tree->Branch("GenPart_phi", value_gen_phi, "GenPart_phi[nGenPart]/F");
   tree->Branch("GenPart_mass", value_gen_mass, "GenPart_mass[nGenPart]/F");
   tree->Branch("GenPart_pdgId", value_gen_pdgid, "GenPart_pdgId[nGenPart]/I");
+  */
 }
 
 AOD2NanoAOD::~AOD2NanoAOD() {}
@@ -355,6 +359,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   }
 
   // Generator particles
+  /*
   Handle<GenParticleCollection> gens;
   iEvent.getByLabel(InputTag("genParticles"), gens);
 
@@ -369,6 +374,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_gen_n++;
     }
   }
+  */
 
   // Fill event
   tree->Fill();
