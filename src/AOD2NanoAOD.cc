@@ -49,6 +49,9 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 
+#include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
 class AOD2NanoAOD : public edm::EDAnalyzer {
 public:
   explicit AOD2NanoAOD(const edm::ParameterSet &);
@@ -133,6 +136,15 @@ private:
   float value_jet_eta[max_jet];
   float value_jet_phi[max_jet];
   float value_jet_mass[max_jet];
+
+  // Generator particles
+  const static int max_gen = 1000;
+  UInt_t value_gen_n;
+  float value_gen_pt[max_gen];
+  float value_gen_eta[max_gen];
+  float value_gen_phi[max_gen];
+  float value_gen_mass[max_gen];
+  int value_gen_pdgid[max_gen];
 };
 
 AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
@@ -206,6 +218,14 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Jet_eta", value_jet_eta, "Jet_eta[nJet]/F");
   tree->Branch("Jet_phi", value_jet_phi, "Jet_phi[nJet]/F");
   tree->Branch("Jet_mass", value_jet_mass, "Jet_mass[nJet]/F");
+
+  // Generator particles
+  tree->Branch("nGenPart", &value_gen_n, "nGenPart/i");
+  tree->Branch("GenPart_pt", value_gen_pt, "GenPart_pt[nGenPart]/F");
+  tree->Branch("GenPart_eta", value_gen_eta, "GenPart_eta[nGenPart]/F");
+  tree->Branch("GenPart_phi", value_gen_phi, "GenPart_phi[nGenPart]/F");
+  tree->Branch("GenPart_mass", value_gen_mass, "GenPart_mass[nGenPart]/F");
+  tree->Branch("GenPart_pdgId", value_gen_pdgid, "GenPart_pdgId[nGenPart]/I");
 }
 
 AOD2NanoAOD::~AOD2NanoAOD() {}
@@ -217,20 +237,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   using namespace reco;
   using namespace std;
 
-  /*
-  LogInfo("DEBUG")
-  << "Starting to analyze \n"
-  << "Event number: " << (iEvent.id()).event()
-  << ", Run number: " << iEvent.run()
-  << ", Lumisection: " << iEvent.luminosityBlock();
-  */
-
-
   // Event information
-  // https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookChapter4#GetData
-  // https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideEDMGetDataFromEvent#get_ByLabel
-  // https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideAodDataTable
-  // https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideRecoDataTable
   value_run = iEvent.run();
   value_lumi_block = iEvent.luminosityBlock();
   value_event = iEvent.id().event();
@@ -344,6 +351,22 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
       value_jet_n++;
+    }
+  }
+
+  // Generator particles
+  Handle<GenParticleCollection> gens;
+  iEvent.getByLabel(InputTag("genParticles"), gens);
+
+  value_gen_n = 0;
+  for (auto it = gens->begin(); it != gens->end(); it++) {
+    if (it->status() == 1) {
+      value_gen_pt[value_gen_n] = it->pt();
+      value_gen_eta[value_gen_n] = it->eta();
+      value_gen_phi[value_gen_n] = it->phi();
+      value_gen_mass[value_gen_n] = it->mass();
+      value_gen_pdgid[value_gen_n] = it->pdgId();
+      value_gen_n++;
     }
   }
 
