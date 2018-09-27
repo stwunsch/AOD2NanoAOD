@@ -90,6 +90,7 @@ private:
   float value_el_phi[max_el];
   float value_el_mass[max_el];
   int value_el_charge[max_el];
+  float value_el_pfreliso03chg[max_el];
 
   // Taus
   const static int max_tau = 100;
@@ -162,6 +163,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Electron_phi", value_el_phi, "Electron_phi[nElectron]/F");
   tree->Branch("Electron_mass", value_el_mass, "Electron_mass[nElectron]/F");
   tree->Branch("Electron_charge", value_el_charge, "Electron_charge[nElectron]/I");
+  tree->Branch("Electron_pfRelIso03_chg", value_el_pfreliso03chg, "Electron_pfRelIso03_chg[nElectron]/F");
 
   // Taus
   tree->Branch("nTau", &value_tau_n, "nTau/i");
@@ -265,6 +267,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_el_phi[value_el_n] = it->phi();
       value_el_charge[value_el_n] = it->charge();
       value_el_mass[value_el_n] = it->mass();
+      value_el_pfreliso03chg[value_el_n] = it->pfIsolationVariables().chargedHadronIso;
       value_el_n++;
     }
   }
