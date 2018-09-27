@@ -80,6 +80,7 @@ private:
   float value_mu_phi[max_mu];
   float value_mu_mass[max_mu];
   int value_mu_charge[max_mu];
+  float value_mu_pfreliso03all[max_mu];
 
   // Electrons
   const static int max_el = 100;
@@ -99,6 +100,8 @@ private:
   float value_tau_mass[max_tau];
   int value_tau_charge[max_tau];
   int value_tau_decaymode[max_tau];
+  float value_tau_chargediso[max_tau];
+  float value_tau_neutraliso[max_tau];
 
   // Photons
   const static int max_ph = 100;
@@ -150,6 +153,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Muon_phi", value_mu_phi, "Muon_phi[nMuon]/F");
   tree->Branch("Muon_mass", value_mu_mass, "Muon_mass[nMuon]/F");
   tree->Branch("Muon_charge", value_mu_charge, "Muon_charge[nMuon]/I");
+  tree->Branch("Muon_pfRelIso03_all", value_mu_pfreliso03all, "Muon_pfRelIso03_all[nMuon]/F");
 
   // Electrons
   tree->Branch("nElectron", &value_el_n, "nElectron/i");
@@ -167,6 +171,8 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Tau_mass", value_tau_mass, "Tau_mass[nTau]/F");
   tree->Branch("Tau_charge", value_tau_charge, "Tau_charge[nTau]/I");
   tree->Branch("Tau_decayMode", value_tau_decaymode, "Tau_decayMode[nTau]/I");
+  tree->Branch("Tau_chargedIso", value_tau_chargediso, "Tau_chargedIso[nTau]/F");
+  tree->Branch("Tau_neutralIso", value_tau_neutraliso, "Tau_neutralIso[nTau]/F");
 
   // Photons
   tree->Branch("nPhoton", &value_ph_n, "nPhoton/i");
@@ -241,6 +247,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_mu_phi[value_mu_n] = it->phi();
       value_mu_charge[value_mu_n] = it->charge();
       value_mu_mass[value_mu_n] = it->mass();
+      value_mu_pfreliso03all[value_mu_n] = it->isolationR03().sumPt;
       value_mu_n++;
     }
   }
@@ -276,6 +283,8 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_tau_charge[value_tau_n] = it->charge();
       value_tau_mass[value_tau_n] = it->mass();
       value_tau_decaymode[value_tau_n] = it->decayMode();
+      value_tau_chargediso[value_tau_n] = it->isolationPFChargedHadrCandsPtSum();
+      value_tau_neutraliso[value_tau_n] = it->isolationPFGammaCandsEtSum();
       value_tau_n++;
     }
   }
