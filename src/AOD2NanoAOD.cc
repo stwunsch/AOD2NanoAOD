@@ -33,6 +33,7 @@
 
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonFwd.h"
+#include "DataFormats/MuonReco/interface/MuonSelectors.h"
 
 #include "DataFormats/EgammaCandidates/interface/Photon.h"
 #include "DataFormats/EgammaCandidates/interface/PhotonFwd.h"
@@ -81,6 +82,8 @@ private:
   float value_mu_mass[max_mu];
   int value_mu_charge[max_mu];
   float value_mu_pfreliso03all[max_mu];
+  bool value_mu_tightid[max_mu];
+  bool value_mu_softid[max_mu];
 
   // Electrons
   const static int max_el = 100;
@@ -155,6 +158,8 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Muon_mass", value_mu_mass, "Muon_mass[nMuon]/F");
   tree->Branch("Muon_charge", value_mu_charge, "Muon_charge[nMuon]/I");
   tree->Branch("Muon_pfRelIso03_all", value_mu_pfreliso03all, "Muon_pfRelIso03_all[nMuon]/F");
+  tree->Branch("Muon_tightId", value_mu_tightid, "Muon_tightId[nMuon]/O");
+  tree->Branch("Muon_softId", value_mu_softid, "Muon_softId[nMuon]/O");
 
   // Electrons
   tree->Branch("nElectron", &value_el_n, "nElectron/i");
@@ -250,6 +255,8 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_mu_charge[value_mu_n] = it->charge();
       value_mu_mass[value_mu_n] = it->mass();
       value_mu_pfreliso03all[value_mu_n] = it->isolationR03().sumPt;
+      value_mu_tightid[value_mu_n] = muon::isTightMuon(*it, *vertices->begin());
+      value_mu_softid[value_mu_n] = muon::isSoftMuon(*it, *vertices->begin());
       value_mu_n++;
     }
   }
