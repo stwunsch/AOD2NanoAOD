@@ -115,6 +115,7 @@ private:
   float value_ph_phi[max_ph];
   float value_ph_mass[max_ph];
   int value_ph_charge[max_ph];
+  float value_ph_pfreliso03all[max_ph];
 
   // MET
   float value_met_pt;
@@ -188,6 +189,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Photon_phi", value_ph_phi, "Photon_phi[nPhoton]/F");
   tree->Branch("Photon_mass", value_ph_mass, "Photon_mass[nPhoton]/F");
   tree->Branch("Photon_charge", value_ph_charge, "Photon_charge[nPhoton]/I");
+  tree->Branch("Photon_pfRelIso03_all", value_ph_pfreliso03all, "Photon_pfRelIso03_all[nPhoton]/F");
 
   // MET
   tree->Branch("MET_pt", &value_met_pt, "MET_pt/F");
@@ -312,6 +314,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_ph_phi[value_ph_n] = it->phi();
       value_ph_charge[value_ph_n] = it->charge();
       value_ph_mass[value_ph_n] = it->mass();
+      value_ph_pfreliso03all[value_ph_n] = it->ecalRecHitSumEtConeDR03();
       value_ph_n++;
     }
   }
