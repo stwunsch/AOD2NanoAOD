@@ -91,13 +91,14 @@ private:
   int value_el_charge[max_el];
 
   // Taus
-  const static int max_tau = 300;
+  const static int max_tau = 100;
   UInt_t value_tau_n;
   float value_tau_pt[max_tau];
   float value_tau_eta[max_tau];
   float value_tau_phi[max_tau];
   float value_tau_mass[max_tau];
   int value_tau_charge[max_tau];
+  int value_tau_decaymode[max_tau];
 
   // Photons
   const static int max_ph = 100;
@@ -165,6 +166,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Tau_phi", value_tau_phi, "Tau_phi[nTau]/F");
   tree->Branch("Tau_mass", value_tau_mass, "Tau_mass[nTau]/F");
   tree->Branch("Tau_charge", value_tau_charge, "Tau_charge[nTau]/I");
+  tree->Branch("Tau_decayMode", value_tau_decaymode, "Tau_decayMode[nTau]/I");
 
   // Photons
   tree->Branch("nPhoton", &value_ph_n, "nPhoton/i");
@@ -258,14 +260,18 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   Handle<PFTauCollection> taus;
   iEvent.getByLabel(InputTag("hpsPFTauProducer"), taus);
 
-  value_tau_n = taus->size();
+  const float tau_min_pt = 15;
+  value_tau_n = 0;
   for (auto it = taus->begin(); it != taus->end(); it++) {
-    const auto idx = it - taus->begin();
-    value_tau_pt[idx] = it->pt();
-    value_tau_eta[idx] = it->eta();
-    value_tau_phi[idx] = it->phi();
-    value_tau_charge[idx] = it->charge();
-    value_tau_mass[idx] = it->mass();
+    if (it->pt() > tau_min_pt) {
+      value_tau_pt[value_tau_n] = it->pt();
+      value_tau_eta[value_tau_n] = it->eta();
+      value_tau_phi[value_tau_n] = it->phi();
+      value_tau_charge[value_tau_n] = it->charge();
+      value_tau_mass[value_tau_n] = it->mass();
+      value_tau_decaymode[value_tau_n] = it->decayMode();
+      value_tau_n++;
+    }
   }
 
   // Photons
@@ -298,13 +304,16 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   Handle<PFJetCollection> jets;
   iEvent.getByLabel(InputTag("ak5PFJets"), jets);
 
-  value_jet_n = jets->size();
+  const float jet_min_pt = 15;
+  value_jet_n = 0;
   for (auto it = jets->begin(); it != jets->end(); it++) {
-    const auto idx = it - jets->begin();
-    value_jet_pt[idx] = it->pt();
-    value_jet_eta[idx] = it->eta();
-    value_jet_phi[idx] = it->phi();
-    value_jet_mass[idx] = it->mass();
+    if (it->pt() > jet_min_pt) {
+      value_jet_pt[value_jet_n] = it->pt();
+      value_jet_eta[value_jet_n] = it->eta();
+      value_jet_phi[value_jet_n] = it->phi();
+      value_jet_mass[value_jet_n] = it->mass();
+      value_jet_n++;
+    }
   }
 
   // Fill event
