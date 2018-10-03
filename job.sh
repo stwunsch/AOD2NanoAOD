@@ -39,7 +39,7 @@ eval `scramv1 runtime -sh`
 cd $THIS_DIR
 
 # Copy config file
-cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/${PROCESS}_cfg.py .
+cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/${PROCESS}_cfg.py .
 
 # Modify CMSSW config to run only a single file
 sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" ${PROCESS}_cfg.py
