@@ -24,6 +24,6 @@ process.source.skipEvents = cms.untracked.uint32(0)
 # Register fileservice for output file
 process.aod2nanoaod = cms.EDAnalyzer("AOD2NanoAOD")
 process.TFileService = cms.Service(
-    "TFileService", fileName=cms.string("VBFHToTauTau.root"))
+    "TFileService", fileName=cms.string("VBF_HToTauTau.root"))
 
 process.p = cms.Path(process.aod2nanoaod)
