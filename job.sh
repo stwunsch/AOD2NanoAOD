@@ -52,6 +52,6 @@ sed -i -e 's,'${PROCESS}.root','${PROCESS}_${ID}.root',g' ${PROCESS}_cfg.py
 cmsRun ${PROCESS}_cfg.py
 
 # Copy output file
-cp ${PROCESS}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/
 
 echo "### End of job"
