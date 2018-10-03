@@ -34,7 +34,7 @@ def main(args):
     for f in listdir("data"):
         if args.process in f:
             for line in open(join("data", f)).readlines():
-                arguments.append("{} {} {}".format(count, args.process, f))
+                arguments.append("{} {} {}".format(count, args.process, line).rstrip())
                 count += 1
     jobs.arguments = arguments
 
