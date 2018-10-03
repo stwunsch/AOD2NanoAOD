@@ -13,9 +13,8 @@ process.options = cms.untracked.PSet(wantSummary=cms.untracked.bool(True))
 process.maxEvents = cms.untracked.PSet(input=cms.untracked.int32(-1))
 
 # Define files of dataset
-files = FileUtils.loadListFromFile(
-    "data/CMS_MonteCarlo2012_Summer12_DR53X_GluGluToHToTauTau_M-125_8TeV-powheg-pythia6-tauPolarOff_AODSIM_PU_S10_START53_V19-v1_00000_file_index.txt"
-)
+files = FileUtils.loadListFromFile("data/CMS_MonteCarlo2012_Summer12_DR53X_GluGluToHToTauTau_M-125_8TeV-powheg-pythia6-tauPolarOff_AODSIM_PU_S10_START53_V19-v1_00000_file_index.txt")
+
 process.source = cms.Source(
     "PoolSource", fileNames=cms.untracked.vstring(*files))
 
