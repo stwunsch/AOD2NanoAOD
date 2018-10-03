@@ -41,6 +41,10 @@ cd $THIS_DIR
 # Copy config file
 cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/${PROCESS}_cfg.py .
 
+# Copy lumi mask for data files
+mkdir -p data
+cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt data/
+
 # Modify CMSSW config to run only a single file
 sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" ${PROCESS}_cfg.py
 sed -i -e 's,^files.extend,#files.extend,g' ${PROCESS}_cfg.py
