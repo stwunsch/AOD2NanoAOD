@@ -1,0 +1,3 @@
+[submodule "jdl_creator"]
+	path = jdl_creator
+	url = http://github.com/KIT-CMS/jdl_creator
