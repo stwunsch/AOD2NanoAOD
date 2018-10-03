@@ -18,7 +18,7 @@ OUTPUT_DIR=/storage/c/wunsch/cms_opendata_2012_jobs
 echo "Output directory:" $OUTPUT_DIR
 
 CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/CMSSW_5_3_32
-echo "Output directory:" $OUTPUT_DIR
+echo "CMSSW base:" $OUTPUT_DIR
 
 echo "Hostname:" `hostname`
 
