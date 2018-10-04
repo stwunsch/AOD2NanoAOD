@@ -39,7 +39,7 @@ def main(args):
     jobs.arguments = arguments
 
     # The job requires lots of CPU resources
-    jobs.requirements = '(Target.ProvidesCPU == True) && (Target.ProvidesEKPResources == True)'
+    jobs.requirements = '(Target.ProvidesCPU == True) && (Target.ProvidesEKPResources == True) && (Target.CloudSite != "blade")'
     jobs.job_folder = args.output
     jobs.WriteJDL()
 
