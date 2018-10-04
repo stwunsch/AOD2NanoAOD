@@ -33,9 +33,15 @@ def main(input_dir):
     if not os.path.exists("data/") or not os.path.isdir("data/"):
         raise Exception("Directory \"data\" does not exist.")
     count_expected = 0
+    count_line = 0
+    filelist_combined = {}
     for f in os.listdir("data/"):
         if process in f:
-            count_expected += len(open(os.path.join("data", f)).readlines())
+            filelist = open(os.path.join("data", f)).readlines()
+            count_expected += len(filelist)
+            for line in filelist:
+                filelist_combined[count_line] = line.rstrip()
+                count_line += 1
     print("Expect %u files in input directory."%(count_expected))
 
     # Go through files and find missing ones
@@ -47,13 +53,19 @@ def main(input_dir):
         files[int(n)] = os.path.join(input_dir, f)
 
     missing_file = False
+    argument_list = []
     for i in range(count_expected):
         if not i in files:
+            argument_list.append("%u %s %s"%(i, process, filelist_combined[i]))
             print("Miss file with ID %u."%(i))
             missing_file = True
     print("Found %u files of %u expected files in input directory."%(len(files), count_expected))
     if missing_file:
-        raise Exception("Found missing files.")
+        path_list = "arguments.txt"
+        out_list = open(path_list, "w")
+        for a in argument_list:
+            out_list.write(a+"\n")
+        raise Exception("Found missing files, wrote arguments list to %s."%(path_list))
 
     # Merge files
     chain = ROOT.TChain("aod2nanoaod/Events")
