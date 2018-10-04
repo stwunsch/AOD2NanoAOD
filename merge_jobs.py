@@ -51,7 +51,7 @@ def main(input_dir):
         if not i in files:
             print("Miss file with ID %u."%(i))
             missing_file = True
-    print("Found %u files in input directory."%(len(files)))
+    print("Found %u files of %u expected files in input directory."%(len(files), count_expected))
     if missing_file:
         raise Exception("Found missing files.")
 
