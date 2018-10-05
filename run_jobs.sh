@@ -4,6 +4,7 @@
 BASE_PATH=~/home/workspace/jobs_opendata
 mkdir -p $BASE_PATH
 PROCESSES=( \
+    SMHiggsToZZTo4L_M-125 \
     GluGluToHToTauTau \
     VBF_HToTauTau \
     TTbar \
@@ -11,6 +12,9 @@ PROCESSES=( \
     W2JetsToLNu \
     W3JetsToLNu \
     DYJetsToLL_M-50 \
+    ZZTo2e2mu \
+    ZZTo4mu \
+    ZZTo4e \
     Run2012B_DoubleMuParked \
     Run2012C_DoubleMuParked\
     )
