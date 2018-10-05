@@ -39,23 +39,25 @@ eval `scramv1 runtime -sh`
 cd $THIS_DIR
 
 # Copy config file
-cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/${PROCESS}_cfg.py .
+if [[ $string = *"Run2012"* ]]; then
+    cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/data_cfg.py cfg.py
+else
+    cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py cfg.py
+fi
 
-# Copy lumi mask for data files
+# Get lumi mask for data files
 mkdir -p data
-cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt data/
+wget https://raw.githubusercontent.com/stwunsch/AOD2NanoAOD/master/data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt
+mv Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt data/
 
 # Modify CMSSW config to run only a single file
-sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" ${PROCESS}_cfg.py
-sed -i -e 's,^files.extend,#files.extend,g' ${PROCESS}_cfg.py
-
-# Rename output file in CMSSW config
-sed -i -e 's,'${PROCESS}.root','${PROCESS}_${ID}.root',g' ${PROCESS}_cfg.py
+sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" cfg.py
+sed -i -e 's,^files.extend,#files.extend,g' cfg.py
 
 # Run CMSSW config
-cmsRun ${PROCESS}_cfg.py
+cmsRun cfg.py
 
 # Copy output file
-cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/
+cp output.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
 
 echo "### End of job"

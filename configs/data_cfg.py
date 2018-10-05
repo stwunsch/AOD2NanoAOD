@@ -39,6 +39,6 @@ process.source.skipEvents = cms.untracked.uint32(0)
 # Register fileservice for output file
 process.aod2nanoaod = cms.EDAnalyzer("AOD2NanoAOD")
 process.TFileService = cms.Service(
-    "TFileService", fileName=cms.string("Run2012B_DoubleMuParked.root"))
+    "TFileService", fileName=cms.string("output.root"))
 
 process.p = cms.Path(process.aod2nanoaod)
