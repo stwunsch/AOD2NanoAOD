@@ -4,7 +4,7 @@
 BASE_PATH=/ceph/wunsch/cms_opendata_2012_jobs
 mkdir -p $BASE_PATH
 PROCESSES=( \
-    SMHiggsToZZTo4L_M-125 \
+    SMHiggsToZZTo4L \
     GluGluToHToTauTau \
     VBF_HToTauTau \
     ZZTo2e2mu \
