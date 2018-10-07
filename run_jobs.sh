@@ -16,7 +16,7 @@ PROCESSES=( \
     W3JetsToLNu \
     DYJetsToLL_M-50 \
     Run2012B_DoubleMuParked \
-    Run2012C_DoubleMuParked\
+    Run2012C_DoubleMuParked \
     )
 
 # Create JDL files and job directories
