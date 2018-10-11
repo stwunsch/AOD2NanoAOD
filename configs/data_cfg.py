@@ -3,6 +3,9 @@ import FWCore.Utilities.FileUtils as FileUtils
 import FWCore.PythonUtilities.LumiList as LumiList
 import FWCore.ParameterSet.Types as CfgTypes
 process = cms.Process("AOD2NanoAOD")
+process.load("Configuration.Geometry.GeometryIdeal_cff")
+process.load("Configuration.StandardSequences.MagneticField_cff")
+process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = "INFO"
@@ -25,6 +28,9 @@ files.extend(FileUtils.loadListFromFile("data/CMS_Run2012B_DoubleMuParked_AOD_22
 
 process.source = cms.Source(
     "PoolSource", fileNames=cms.untracked.vstring(*files))
+
+# Set global tag
+process.GlobalTag.globaltag = "FT_R_53_V18::All"
 
 # Apply JSON file with lumi mask (needs to be done after the process.source definition)
 goodJSON = "data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt"

@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Define path for job directories and processes
+# Define path for job directories
 BASE_PATH=/ceph/wunsch/cms_opendata_2012_jobs
 mkdir -p $BASE_PATH
+
+# Set processes
 PROCESSES=( \
     SMHiggsToZZTo4L \
     GluGluToHToTauTau \
@@ -17,6 +19,8 @@ PROCESSES=( \
     DYJetsToLL_M-50 \
     Run2012B_DoubleMuParked \
     Run2012C_DoubleMuParked \
+    Run2012B_DoubleElectron \
+    Run2012C_DoubleElectron \
     )
 
 # Create JDL files and job directories
