@@ -101,7 +101,11 @@ private:
   float value_el_phi[max_el];
   float value_el_mass[max_el];
   int value_el_charge[max_el];
-  float value_el_pfreliso03chg[max_el];
+  float value_el_pfreliso03all[max_el];
+  float value_el_dxy[max_el];
+  float value_el_dxyErr[max_el];
+  float value_el_dz[max_el];
+  float value_el_dzErr[max_el];
 
   // Taus
   const static int max_tau = 100;
@@ -193,7 +197,11 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Electron_phi", value_el_phi, "Electron_phi[nElectron]/F");
   tree->Branch("Electron_mass", value_el_mass, "Electron_mass[nElectron]/F");
   tree->Branch("Electron_charge", value_el_charge, "Electron_charge[nElectron]/I");
-  tree->Branch("Electron_pfRelIso03_chg", value_el_pfreliso03chg, "Electron_pfRelIso03_chg[nElectron]/F");
+  tree->Branch("Electron_pfRelIso03_all", value_el_pfreliso03all, "Electron_pfRelIso03_all[nElectron]/F");
+  tree->Branch("Electron_dxy", value_el_dxy, "Electron_dxy[nElectron]/F");
+  tree->Branch("Electron_dxyErr", value_el_dxyErr, "Electron_dxyErr[nElectron]/F");
+  tree->Branch("Electron_dz", value_el_dz, "Electron_dz[nElectron]/F");
+  tree->Branch("Electron_dzErr", value_el_dzErr, "Electron_dzErr[nElectron]/F");
 
   // Taus
   tree->Branch("nTau", &value_tau_n, "nTau/i");
@@ -320,7 +328,18 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_el_phi[value_el_n] = it->phi();
       value_el_charge[value_el_n] = it->charge();
       value_el_mass[value_el_n] = it->mass();
-      value_el_pfreliso03chg[value_el_n] = it->pfIsolationVariables().chargedHadronIso;
+      if (it->passingPflowPreselection()) {
+        auto iso03 = it->pfIsolationVariables();
+        value_el_pfreliso03all[value_el_n] =
+            (iso03.chargedHadronIso + iso03.neutralHadronIso + iso03.photonIso)/it->pt();
+      } else {
+        value_el_pfreliso03all[value_el_n] = -999;
+      }
+      auto trk = it->gsfTrack();
+      value_el_dxy[value_el_n] = trk->dxy(pv);
+      value_el_dz[value_el_n] = trk->dz(pv);
+      value_el_dxyErr[value_el_n] = trk->d0Error();
+      value_el_dzErr[value_el_n] = trk->dzError();
       value_el_n++;
     }
   }
