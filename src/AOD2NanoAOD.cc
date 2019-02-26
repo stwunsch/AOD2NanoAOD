@@ -421,29 +421,35 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   iEvent.getByLabel(InputTag("ak5PFJets"), jets);
 
   const float jet_min_pt = 15;
-  const float deltar_matching = 0.3;
   value_jet_n = 0;
+  std::vector<PFJet> jetRefs;
   for (auto it = jets->begin(); it != jets->end(); it++) {
     if (it->pt() > jet_min_pt) {
+      jetRefs.emplace_back(*it);
       value_jet_pt[value_jet_n] = it->pt();
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
-      // Match muons
-      for (auto m = muonRefs.begin(); m != muonRefs.end(); m++) {
-        const auto idx = m - muonRefs.begin();
-        if (deltaR(m->p4(), it->p4()) < deltar_matching && value_mu_jetidx[idx] == -1) {
-          value_mu_jetidx[m - muonRefs.begin()] = value_jet_n;
-        }
-      }
-      // Match electrons
-      for (auto e = electronRefs.begin(); e != electronRefs.end(); e++) {
-        const auto idx = e - electronRefs.begin();
-        if (deltaR(e->p4(), it->p4()) < deltar_matching && value_el_jetidx[idx] == -1) {
-          value_el_jetidx[e - electronRefs.begin()] = value_jet_n;
-        }
-      }
       value_jet_n++;
+    }
+  }
+
+  // Jet matching for muons and electrons
+  const float deltar_matching = 0.3;
+  for (auto itm = muonRefs.begin(); itm != muonRefs.end(); itm++) {
+    for (auto itj = jetRefs.begin(); itj != jetRefs.end(); itj++) {
+      if (deltaR(itm->p4(), itj->p4()) < deltar_matching) {
+        value_mu_jetidx[itm - muonRefs.begin()] = itj - jetRefs.begin();
+        break;
+      }
+    }
+  }
+  for (auto ite = electronRefs.begin(); ite != electronRefs.end(); ite++) {
+    for (auto itj = jetRefs.begin(); itj != jetRefs.end(); itj++) {
+      if (deltaR(ite->p4(), itj->p4()) < deltar_matching) {
+        value_el_jetidx[ite - electronRefs.begin()] = itj - jetRefs.begin();
+        break;
+      }
     }
   }
 
