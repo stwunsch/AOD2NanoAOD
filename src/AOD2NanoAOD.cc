@@ -52,6 +52,8 @@
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
 
+#include "DataFormats/Math/interface/deltaR.h"
+
 class AOD2NanoAOD : public edm::EDAnalyzer {
 public:
   explicit AOD2NanoAOD(const edm::ParameterSet &);
@@ -419,6 +421,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   iEvent.getByLabel(InputTag("ak5PFJets"), jets);
 
   const float jet_min_pt = 15;
+  const float deltar_matching = 0.3;
   value_jet_n = 0;
   for (auto it = jets->begin(); it != jets->end(); it++) {
     if (it->pt() > jet_min_pt) {
@@ -426,34 +429,18 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
-      // Matching
-      auto constituents = it->getPFConstituents();
-      for (auto itc = constituents.begin(); itc != constituents.end(); itc++) {
-        // Muons
-        auto jetMuonRefs = (*itc)->muonRef();
-        if (jetMuonRefs.isNonnull()) {
-          auto jetMuonProd = jetMuonRefs.product();
-          for (auto itcm = jetMuonProd->begin(); itcm != jetMuonProd->end(); itcm++) {
-            for (auto itm = muonRefs.begin(); itm != muonRefs.end(); itm++) {
-              if (itm->p4() == itcm->p4()) {
-                auto idx = itm - muonRefs.begin();
-                value_mu_jetidx[idx] = value_jet_n;
-              }
-            }
-          }
+      // Match muons
+      for (auto m = muonRefs.begin(); m != muonRefs.end(); m++) {
+        const auto idx = m - muonRefs.begin();
+        if (deltaR(m->p4(), it->p4()) < deltar_matching && value_mu_jetidx[idx] == -1) {
+          value_mu_jetidx[m - muonRefs.begin()] = value_jet_n;
         }
-        // Electrons
-        auto jetElectronRefs = (*itc)->gsfElectronRef();
-        if (jetElectronRefs.isNonnull()) {
-          auto jetElectronProd = jetElectronRefs.product();
-          for (auto itce = jetElectronProd->begin(); itce != jetElectronProd->end(); itce++) {
-            for (auto ite = electronRefs.begin(); ite != electronRefs.end(); ite++) {
-              if (ite->p4() == itce->p4()) {
-                auto idx = ite - electronRefs.begin();
-                value_el_jetidx[idx] = value_jet_n;
-              }
-            }
-          }
+      }
+      // Match electrons
+      for (auto e = electronRefs.begin(); e != electronRefs.end(); e++) {
+        const auto idx = e - electronRefs.begin();
+        if (deltaR(e->p4(), it->p4()) < deltar_matching && value_el_jetidx[idx] == -1) {
+          value_el_jetidx[e - electronRefs.begin()] = value_jet_n;
         }
       }
       value_jet_n++;
