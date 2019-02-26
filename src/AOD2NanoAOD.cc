@@ -92,6 +92,7 @@ private:
   float value_mu_dxyErr[max_mu];
   float value_mu_dz[max_mu];
   float value_mu_dzErr[max_mu];
+  int value_mu_jetidx[max_mu];
 
   // Electrons
   const static int max_el = 100;
@@ -106,6 +107,9 @@ private:
   float value_el_dxyErr[max_el];
   float value_el_dz[max_el];
   float value_el_dzErr[max_el];
+  bool value_el_cutbasedid[max_el];
+  bool value_el_pfid[max_el];
+  int value_el_jetidx[max_el];
 
   // Taus
   const static int max_tau = 100;
@@ -189,6 +193,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Muon_dxyErr", value_mu_dxyErr, "Muon_dxyErr[nMuon]/F");
   tree->Branch("Muon_dz", value_mu_dz, "Muon_dz[nMuon]/F");
   tree->Branch("Muon_dzErr", value_mu_dzErr, "Muon_dzErr[nMuon]/F");
+  tree->Branch("Muon_jetIdx", value_mu_jetidx, "Muon_jetIdx[nMuon]/I");
 
   // Electrons
   tree->Branch("nElectron", &value_el_n, "nElectron/i");
@@ -202,8 +207,12 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Electron_dxyErr", value_el_dxyErr, "Electron_dxyErr[nElectron]/F");
   tree->Branch("Electron_dz", value_el_dz, "Electron_dz[nElectron]/F");
   tree->Branch("Electron_dzErr", value_el_dzErr, "Electron_dzErr[nElectron]/F");
+  tree->Branch("Electron_cutBasedId", value_el_cutbasedid, "Electron_cutBasedId[nElectron]/O");
+  tree->Branch("Electron_pfId", value_el_pfid, "Electron_pfId[nElectron]/O");
+  tree->Branch("Electron_jetIdx", value_el_jetidx, "Electron_jetIdx[nElectron]/I");
 
   // Taus
+  /*
   tree->Branch("nTau", &value_tau_n, "nTau/i");
   tree->Branch("Tau_pt", value_tau_pt, "Tau_pt[nTau]/F");
   tree->Branch("Tau_eta", value_tau_eta, "Tau_eta[nTau]/F");
@@ -231,6 +240,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("MET_CovXX", &value_met_covxx, "MET_CovXX/F");
   tree->Branch("MET_CovXY", &value_met_covxy, "MET_CovXY/F");
   tree->Branch("MET_CovYY", &value_met_covyy, "MET_CovYY/F");
+  */
 
   // Jets
   tree->Branch("nJet", &value_jet_n, "nJet/i");
@@ -279,8 +289,10 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
 
   value_mu_n = 0;
   const float mu_min_pt = 3;
+  std::vector<Muon> muonRefs;
   for (auto it = muons->begin(); it != muons->end(); it++) {
     if (it->pt() > mu_min_pt) {
+      muonRefs.emplace_back(*it);
       value_mu_pt[value_mu_n] = it->pt();
       value_mu_eta[value_mu_n] = it->eta();
       value_mu_phi[value_mu_n] = it->phi();
@@ -311,6 +323,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
         value_mu_dz[value_mu_n] = -999;
         value_mu_dzErr[value_mu_n] = -999;
       }
+      value_mu_jetidx[value_mu_n] = -1;
       value_mu_n++;
     }
   }
@@ -321,13 +334,17 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
 
   value_el_n = 0;
   const float el_min_pt = 5;
+  std::vector<GsfElectron> electronRefs;
   for (auto it = electrons->begin(); it != electrons->end(); it++) {
     if (it->pt() > el_min_pt) {
+      electronRefs.emplace_back(*it);
       value_el_pt[value_el_n] = it->pt();
       value_el_eta[value_el_n] = it->eta();
       value_el_phi[value_el_n] = it->phi();
       value_el_charge[value_el_n] = it->charge();
       value_el_mass[value_el_n] = it->mass();
+      value_el_cutbasedid[value_el_n] = it->passingCutBasedPreselection();
+      value_el_pfid[value_el_n] = it->passingPflowPreselection();
       if (it->passingPflowPreselection()) {
         auto iso03 = it->pfIsolationVariables();
         value_el_pfreliso03all[value_el_n] =
@@ -340,11 +357,13 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_el_dz[value_el_n] = trk->dz(pv);
       value_el_dxyErr[value_el_n] = trk->d0Error();
       value_el_dzErr[value_el_n] = trk->dzError();
+      value_el_jetidx[value_el_n] = -1;
       value_el_n++;
     }
   }
 
   // Taus
+  /*
   Handle<PFTauCollection> taus;
   iEvent.getByLabel(InputTag("hpsPFTauProducer"), taus);
 
@@ -393,6 +412,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   value_met_covxx = cov[0][0];
   value_met_covxy = cov[0][1];
   value_met_covyy = cov[1][1];
+  */
 
   // Jets
   Handle<PFJetCollection> jets;
@@ -406,6 +426,36 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
+      // Matching
+      auto constituents = it->getPFConstituents();
+      for (auto itc = constituents.begin(); itc != constituents.end(); itc++) {
+        // Muons
+        auto jetMuonRefs = (*itc)->muonRef();
+        if (jetMuonRefs.isNonnull()) {
+          auto jetMuonProd = jetMuonRefs.product();
+          for (auto itcm = jetMuonProd->begin(); itcm != jetMuonProd->end(); itcm++) {
+            for (auto itm = muonRefs.begin(); itm != muonRefs.end(); itm++) {
+              if (itm->p4() == itcm->p4()) {
+                auto idx = itm - muonRefs.begin();
+                value_mu_jetidx[idx] = value_jet_n;
+              }
+            }
+          }
+        }
+        // Electrons
+        auto jetElectronRefs = (*itc)->gsfElectronRef();
+        if (jetElectronRefs.isNonnull()) {
+          auto jetElectronProd = jetElectronRefs.product();
+          for (auto itce = jetElectronProd->begin(); itce != jetElectronProd->end(); itce++) {
+            for (auto ite = electronRefs.begin(); ite != electronRefs.end(); ite++) {
+              if (ite->p4() == itce->p4()) {
+                auto idx = ite - electronRefs.begin();
+                value_el_jetidx[idx] = value_jet_n;
+              }
+            }
+          }
+        }
+      }
       value_jet_n++;
     }
   }
