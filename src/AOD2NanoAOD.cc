@@ -151,6 +151,8 @@ private:
   float value_jet_eta[max_jet];
   float value_jet_phi[max_jet];
   float value_jet_mass[max_jet];
+  bool value_jet_looseid[max_jet];
+  bool value_jet_tightid[max_jet];
 
   // Generator particles
   /*
@@ -250,6 +252,8 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Jet_eta", value_jet_eta, "Jet_eta[nJet]/F");
   tree->Branch("Jet_phi", value_jet_phi, "Jet_phi[nJet]/F");
   tree->Branch("Jet_mass", value_jet_mass, "Jet_mass[nJet]/F");
+  tree->Branch("Jet_looseId", value_jet_looseid, "Jet_looseId[nJet]/O");
+  tree->Branch("Jet_tightId", value_jet_tightid, "Jet_tightId[nJet]/O");
 
   // Generator particles
   /*
@@ -430,6 +434,18 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
+      // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#Recommendations_for_8_TeV_data_a
+      const auto nhf = it->neutralHadronEnergyFraction();
+      const auto nemf = it->neutralEmEnergyFraction();
+      const auto chf = it->chargedHadronEnergyFraction();
+      const auto muf = it->muonEnergyFraction();
+      const auto cemf = it->chargedEmEnergyFraction();
+      const auto numConst = it->chargedMultiplicity() + it->neutralMultiplicity();
+      const auto chm = it->chargedMultiplicity();
+      value_jet_looseid[value_jet_n] =
+          (nhf<0.99 && nemf<0.99 && numConst>1 && muf<0.8) && ((std::fabs(it->eta())<=2.4 && chf>0 && chm>0 && cemf<0.99) || std::fabs(it->eta())>2.4);
+      value_jet_tightid[value_jet_n] =
+          (nhf<0.90 && nemf<0.90 && numConst>1 && muf<0.8) && ((std::fabs(it->eta())<=2.4 && chf>0 && chm>0 && cemf<0.90) || std::fabs(it->eta())>2.4);
       value_jet_n++;
     }
   }
