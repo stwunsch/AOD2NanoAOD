@@ -568,7 +568,15 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     for (auto m = selectedTaus.begin(); m != selectedTaus.end(); m++) {
       // Gen particle matching
       for (auto g = interestingGenTaus.begin(); g != interestingGenTaus.end(); g++) {
-        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
+        // Subtract neutrinos from generator particle
+        auto p4 = g->p4();
+        for (auto d = g->begin(); d != g->end(); d++) {
+          const auto pdgId = d->pdgId();
+          if (pdgId == 12 || pdgId == 14 || pdgId == 16 || pdgId == 18) {
+            p4 -= d->p4();
+          }
+        }
+        if (deltaR(m->p4(), p4) < deltaRMax) {
           value_gen_pt[value_gen_n] = g->pt();
           value_gen_eta[value_gen_n] = g->eta();
           value_gen_phi[value_gen_n] = g->phi();
