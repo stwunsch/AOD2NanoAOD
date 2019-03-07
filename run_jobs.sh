@@ -1,22 +1,25 @@
 #!/bin/bash
 
 # Define path for job directories
-BASE_PATH=/ceph/wunsch/cms_opendata_2012_jobs
+BASE_PATH=/ceph/wunsch/cms_opendata_2012_jobs_2019-03-07
 mkdir -p $BASE_PATH
 
 # Set processes
 PROCESSES=( \
-    SMHiggsToZZTo4L \
-    GluGluToHToTauTau \
-    VBF_HToTauTau \
-    ZZTo2e2mu \
-    ZZTo4mu \
-    ZZTo4e \
+    #SMHiggsToZZTo4L \
+    #GluGluToHToTauTau \
+    #VBF_HToTauTau \
+    #ZZTo2e2mu \
+    #ZZTo4mu \
+    #ZZTo4e \
     TTbar \
     W1JetsToLNu \
     W2JetsToLNu \
     W3JetsToLNu \
-    DYJetsToLL_M-50 \
+    DYJetsToLL \
+    DY2JetsToLL \
+    DY3JetsToLL \
+    DY4JetsToLL \
     Run2012B_DoubleMuParked \
     Run2012C_DoubleMuParked \
     Run2012B_DoubleElectron \
