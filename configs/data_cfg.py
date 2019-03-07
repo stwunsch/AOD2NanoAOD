@@ -43,7 +43,7 @@ process.source.lumisToProcess.extend(myLumis)
 process.source.skipEvents = cms.untracked.uint32(0)
 
 # Register fileservice for output file
-process.aod2nanoaod = cms.EDAnalyzer("AOD2NanoAOD")
+process.aod2nanoaod = cms.EDAnalyzer("AOD2NanoAOD", isData = cms.bool(True))
 process.TFileService = cms.Service(
     "TFileService", fileName=cms.string("output.root"))
 

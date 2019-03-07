@@ -42,6 +42,8 @@
 #include "DataFormats/METReco/interface/PFMETFwd.h"
 
 #include "DataFormats/JetReco/interface/PFJet.h"
+#include "DataFormats/JetReco/interface/CaloJet.h"
+#include "DataFormats/BTauReco/interface/JetTag.h"
 
 #include "DataFormats/TauReco/interface/PFTau.h"
 #include "DataFormats/TauReco/interface/PFTauFwd.h"
@@ -51,6 +53,8 @@
 
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticleFwd.h"
+
+#include "DataFormats/Math/interface/deltaR.h"
 
 class AOD2NanoAOD : public edm::EDAnalyzer {
 public:
@@ -62,6 +66,7 @@ private:
   virtual void analyze(const edm::Event &, const edm::EventSetup &);
   virtual void endJob();
   bool providesGoodLumisection(const edm::Event &iEvent);
+  bool isData;
 
   TTree *tree;
 
@@ -77,7 +82,7 @@ private:
   float value_ve_z;
 
   // Muons
-  const static int max_mu = 100;
+  const static int max_mu = 1000;
   UInt_t value_mu_n;
   float value_mu_pt[max_mu];
   float value_mu_eta[max_mu];
@@ -92,9 +97,10 @@ private:
   float value_mu_dxyErr[max_mu];
   float value_mu_dz[max_mu];
   float value_mu_dzErr[max_mu];
+  int value_mu_genpartidx[max_mu];
 
   // Electrons
-  const static int max_el = 100;
+  const static int max_el = 1000;
   UInt_t value_el_n;
   float value_el_pt[max_el];
   float value_el_eta[max_el];
@@ -106,9 +112,10 @@ private:
   float value_el_dxyErr[max_el];
   float value_el_dz[max_el];
   float value_el_dzErr[max_el];
+  int value_el_genpartidx[max_el];
 
   // Taus
-  const static int max_tau = 100;
+  const static int max_tau = 1000;
   UInt_t value_tau_n;
   float value_tau_pt[max_tau];
   float value_tau_eta[max_tau];
@@ -118,9 +125,10 @@ private:
   int value_tau_decaymode[max_tau];
   float value_tau_chargediso[max_tau];
   float value_tau_neutraliso[max_tau];
+  int value_tau_genpartidx[max_tau];
 
   // Photons
-  const static int max_ph = 100;
+  const static int max_ph = 1000;
   UInt_t value_ph_n;
   float value_ph_pt[max_ph];
   float value_ph_eta[max_ph];
@@ -128,6 +136,7 @@ private:
   float value_ph_mass[max_ph];
   int value_ph_charge[max_ph];
   float value_ph_pfreliso03all[max_ph];
+  int value_ph_genpartidx[max_ph];
 
   // MET
   float value_met_pt;
@@ -139,15 +148,16 @@ private:
   float value_met_covyy;
 
   // Jets
-  const static int max_jet = 300;
+  const static int max_jet = 1000;
   UInt_t value_jet_n;
   float value_jet_pt[max_jet];
   float value_jet_eta[max_jet];
   float value_jet_phi[max_jet];
   float value_jet_mass[max_jet];
+  bool value_jet_puid[max_jet];
+  float value_jet_btag[max_jet];
 
   // Generator particles
-  /*
   const static int max_gen = 1000;
   UInt_t value_gen_n;
   float value_gen_pt[max_gen];
@@ -155,10 +165,11 @@ private:
   float value_gen_phi[max_gen];
   float value_gen_mass[max_gen];
   int value_gen_pdgid[max_gen];
-  */
+  int value_gen_status[max_gen];
 };
 
-AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
+AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
+        : isData(iConfig.getParameter<bool>("isData")) {
   edm::Service<TFileService> fs;
 
   tree = fs->make<TTree>("Events", "Events");
@@ -189,6 +200,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Muon_dxyErr", value_mu_dxyErr, "Muon_dxyErr[nMuon]/F");
   tree->Branch("Muon_dz", value_mu_dz, "Muon_dz[nMuon]/F");
   tree->Branch("Muon_dzErr", value_mu_dzErr, "Muon_dzErr[nMuon]/F");
+  tree->Branch("Muon_genPartIdx", value_mu_genpartidx, "Muon_genPartIdx[nMuon]/I");
 
   // Electrons
   tree->Branch("nElectron", &value_el_n, "nElectron/i");
@@ -202,6 +214,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Electron_dxyErr", value_el_dxyErr, "Electron_dxyErr[nElectron]/F");
   tree->Branch("Electron_dz", value_el_dz, "Electron_dz[nElectron]/F");
   tree->Branch("Electron_dzErr", value_el_dzErr, "Electron_dzErr[nElectron]/F");
+  tree->Branch("Electron_genPartIdx", value_el_genpartidx, "Electron_genPartIdx[nElectron]/I");
 
   // Taus
   tree->Branch("nTau", &value_tau_n, "nTau/i");
@@ -213,6 +226,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Tau_decayMode", value_tau_decaymode, "Tau_decayMode[nTau]/I");
   tree->Branch("Tau_chargedIso", value_tau_chargediso, "Tau_chargedIso[nTau]/F");
   tree->Branch("Tau_neutralIso", value_tau_neutraliso, "Tau_neutralIso[nTau]/F");
+  tree->Branch("Tau_genPartIdx", value_tau_genpartidx, "Tau_genPartIdx[nTau]/I");
 
   // Photons
   tree->Branch("nPhoton", &value_ph_n, "nPhoton/i");
@@ -222,6 +236,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Photon_mass", value_ph_mass, "Photon_mass[nPhoton]/F");
   tree->Branch("Photon_charge", value_ph_charge, "Photon_charge[nPhoton]/I");
   tree->Branch("Photon_pfRelIso03_all", value_ph_pfreliso03all, "Photon_pfRelIso03_all[nPhoton]/F");
+  tree->Branch("Photon_genPartIdx", value_tau_genpartidx, "Photon_genPartIdx[nPhoton]/I");
 
   // MET
   tree->Branch("MET_pt", &value_met_pt, "MET_pt/F");
@@ -238,16 +253,19 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig) {
   tree->Branch("Jet_eta", value_jet_eta, "Jet_eta[nJet]/F");
   tree->Branch("Jet_phi", value_jet_phi, "Jet_phi[nJet]/F");
   tree->Branch("Jet_mass", value_jet_mass, "Jet_mass[nJet]/F");
+  tree->Branch("Jet_puId", value_jet_puid, "Jet_puId[nJet]/O");
+  tree->Branch("Jet_btag", value_jet_btag, "Jet_btag[nJet]/F");
 
   // Generator particles
-  /*
-  tree->Branch("nGenPart", &value_gen_n, "nGenPart/i");
-  tree->Branch("GenPart_pt", value_gen_pt, "GenPart_pt[nGenPart]/F");
-  tree->Branch("GenPart_eta", value_gen_eta, "GenPart_eta[nGenPart]/F");
-  tree->Branch("GenPart_phi", value_gen_phi, "GenPart_phi[nGenPart]/F");
-  tree->Branch("GenPart_mass", value_gen_mass, "GenPart_mass[nGenPart]/F");
-  tree->Branch("GenPart_pdgId", value_gen_pdgid, "GenPart_pdgId[nGenPart]/I");
-  */
+  if (!isData) {
+    tree->Branch("nGenPart", &value_gen_n, "nGenPart/i");
+    tree->Branch("GenPart_pt", value_gen_pt, "GenPart_pt[nGenPart]/F");
+    tree->Branch("GenPart_eta", value_gen_eta, "GenPart_eta[nGenPart]/F");
+    tree->Branch("GenPart_phi", value_gen_phi, "GenPart_phi[nGenPart]/F");
+    tree->Branch("GenPart_mass", value_gen_mass, "GenPart_mass[nGenPart]/F");
+    tree->Branch("GenPart_pdgId", value_gen_pdgid, "GenPart_pdgId[nGenPart]/I");
+    tree->Branch("GenPart_status", value_gen_status, "GenPart_status[nGenPart]/I");
+  }
 }
 
 AOD2NanoAOD::~AOD2NanoAOD() {}
@@ -279,8 +297,10 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
 
   value_mu_n = 0;
   const float mu_min_pt = 3;
+  std::vector<Muon> selectedMuons;
   for (auto it = muons->begin(); it != muons->end(); it++) {
     if (it->pt() > mu_min_pt) {
+      selectedMuons.emplace_back(*it);
       value_mu_pt[value_mu_n] = it->pt();
       value_mu_eta[value_mu_n] = it->eta();
       value_mu_phi[value_mu_n] = it->phi();
@@ -311,6 +331,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
         value_mu_dz[value_mu_n] = -999;
         value_mu_dzErr[value_mu_n] = -999;
       }
+      value_mu_genpartidx[value_mu_n] = -1;
       value_mu_n++;
     }
   }
@@ -321,8 +342,10 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
 
   value_el_n = 0;
   const float el_min_pt = 5;
+  std::vector<GsfElectron> selectedElectrons;
   for (auto it = electrons->begin(); it != electrons->end(); it++) {
     if (it->pt() > el_min_pt) {
+      selectedElectrons.emplace_back(*it);
       value_el_pt[value_el_n] = it->pt();
       value_el_eta[value_el_n] = it->eta();
       value_el_phi[value_el_n] = it->phi();
@@ -340,6 +363,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_el_dz[value_el_n] = trk->dz(pv);
       value_el_dxyErr[value_el_n] = trk->d0Error();
       value_el_dzErr[value_el_n] = trk->dzError();
+      value_el_genpartidx[value_el_n] = -1;
       value_el_n++;
     }
   }
@@ -350,8 +374,10 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
 
   const float tau_min_pt = 15;
   value_tau_n = 0;
+  std::vector<PFTau> selectedTaus;
   for (auto it = taus->begin(); it != taus->end(); it++) {
     if (it->pt() > tau_min_pt) {
+      selectedTaus.emplace_back(*it);
       value_tau_pt[value_tau_n] = it->pt();
       value_tau_eta[value_tau_n] = it->eta();
       value_tau_phi[value_tau_n] = it->phi();
@@ -360,6 +386,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_tau_decaymode[value_tau_n] = it->decayMode();
       value_tau_chargediso[value_tau_n] = it->isolationPFChargedHadrCandsPtSum();
       value_tau_neutraliso[value_tau_n] = it->isolationPFGammaCandsEtSum();
+      value_tau_genpartidx[value_tau_n] = -1;
       value_tau_n++;
     }
   }
@@ -370,14 +397,17 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
 
   value_ph_n = 0;
   const float ph_min_pt = 5;
+  std::vector<Photon> selectedPhotons;
   for (auto it = photons->begin(); it != photons->end(); it++) {
     if (it->pt() > ph_min_pt) {
+      selectedPhotons.emplace_back(*it);
       value_ph_pt[value_ph_n] = it->pt();
       value_ph_eta[value_ph_n] = it->eta();
       value_ph_phi[value_ph_n] = it->phi();
       value_ph_charge[value_ph_n] = it->charge();
       value_ph_mass[value_ph_n] = it->mass();
-      value_ph_pfreliso03all[value_ph_n] = it->ecalRecHitSumEtConeDR03();
+      value_ph_pfreliso03all[value_ph_n] = it->ecalRecHitSumEtConeDR03() / it->pt();
+      value_ph_genpartidx[value_ph_n] = -1;
       value_ph_n++;
     }
   }
@@ -395,8 +425,10 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   value_met_covyy = cov[1][1];
 
   // Jets
-  Handle<PFJetCollection> jets;
-  iEvent.getByLabel(InputTag("ak5PFJets"), jets);
+  Handle<CaloJetCollection> jets;
+  iEvent.getByLabel(InputTag("ak5CaloJets"), jets);
+  Handle<JetTagCollection> btags;
+  iEvent.getByLabel(InputTag("jetProbabilityBJetTags"), btags);
 
   const float jet_min_pt = 15;
   value_jet_n = 0;
@@ -406,27 +438,109 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
+      value_jet_puid[value_jet_n] = it->emEnergyFraction() > 0.01 && it->n90() > 1;
+      value_jet_btag[value_jet_n] = btags->operator[](it - jets->begin()).second;
       value_jet_n++;
     }
   }
 
   // Generator particles
-  /*
-  Handle<GenParticleCollection> gens;
-  iEvent.getByLabel(InputTag("genParticles"), gens);
+  if (!isData) {
+    Handle<GenParticleCollection> gens;
+    iEvent.getByLabel(InputTag("genParticles"), gens);
 
-  value_gen_n = 0;
-  for (auto it = gens->begin(); it != gens->end(); it++) {
-    if (it->status() == 1) {
-      value_gen_pt[value_gen_n] = it->pt();
-      value_gen_eta[value_gen_n] = it->eta();
-      value_gen_phi[value_gen_n] = it->phi();
-      value_gen_mass[value_gen_n] = it->mass();
-      value_gen_pdgid[value_gen_n] = it->pdgId();
-      value_gen_n++;
+    value_gen_n = 0;
+    std::vector<GenParticle> interestingGenMuons;
+    std::vector<GenParticle> interestingGenElectrons;
+    std::vector<GenParticle> interestingGenPhotons;
+    std::vector<GenParticle> interestingGenTaus;
+    for (auto it = gens->begin(); it != gens->end(); it++) {
+      const auto status = it->status();
+      const auto pdgId = std::abs(it->pdgId());
+      if (status == 1 && pdgId == 13) { // muon
+        interestingGenMuons.emplace_back(*it);
+      }
+      if (status == 1 && pdgId == 11) { // electron
+        interestingGenElectrons.emplace_back(*it);
+      }
+      if (status == 1 && pdgId == 22) { // photon
+        interestingGenPhotons.emplace_back(*it);
+      }
+      if (status == 2 && pdgId == 15) { // tau
+        interestingGenTaus.emplace_back(*it);
+      }
     }
-  }
-  */
+
+    // Match muons with gen particles
+    const auto deltaRMax = 0.3;
+    for (auto m = selectedMuons.begin(); m != selectedMuons.end(); m++) {
+      for (auto g = interestingGenMuons.begin(); g != interestingGenMuons.end(); g++) {
+        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
+          value_gen_pt[value_gen_n] = g->pt();
+          value_gen_eta[value_gen_n] = g->eta();
+          value_gen_phi[value_gen_n] = g->phi();
+          value_gen_mass[value_gen_n] = g->mass();
+          value_gen_pdgid[value_gen_n] = g->pdgId();
+          value_gen_status[value_gen_n] = g->status();
+          value_mu_genpartidx[m - selectedMuons.begin()] = value_gen_n;
+          value_gen_n++;
+          break;
+        }
+      }
+    }
+
+    // Match electrons with gen particles
+    for (auto m = selectedElectrons.begin(); m != selectedElectrons.end(); m++) {
+      for (auto g = interestingGenElectrons.begin(); g != interestingGenElectrons.end(); g++) {
+        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
+          value_gen_pt[value_gen_n] = g->pt();
+          value_gen_eta[value_gen_n] = g->eta();
+          value_gen_phi[value_gen_n] = g->phi();
+          value_gen_mass[value_gen_n] = g->mass();
+          value_gen_pdgid[value_gen_n] = g->pdgId();
+          value_gen_status[value_gen_n] = g->status();
+          value_el_genpartidx[m - selectedElectrons.begin()] = value_gen_n;
+          value_gen_n++;
+          break;
+        }
+      }
+    }
+
+   // Match photons with gen particles
+    for (auto m = selectedPhotons.begin(); m != selectedPhotons.end(); m++) {
+      for (auto g = interestingGenPhotons.begin(); g != interestingGenPhotons.end(); g++) {
+        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
+          value_gen_pt[value_gen_n] = g->pt();
+          value_gen_eta[value_gen_n] = g->eta();
+          value_gen_phi[value_gen_n] = g->phi();
+          value_gen_mass[value_gen_n] = g->mass();
+          value_gen_pdgid[value_gen_n] = g->pdgId();
+          value_gen_status[value_gen_n] = g->status();
+          value_ph_genpartidx[m - selectedPhotons.begin()] = value_gen_n;
+          value_gen_n++;
+          break;
+        }
+      }
+    }
+
+    // Match taus with gen particles
+    for (auto m = selectedTaus.begin(); m != selectedTaus.end(); m++) {
+      for (auto g = interestingGenTaus.begin(); g != interestingGenTaus.end(); g++) {
+        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
+          value_gen_pt[value_gen_n] = g->pt();
+          value_gen_eta[value_gen_n] = g->eta();
+          value_gen_phi[value_gen_n] = g->phi();
+          value_gen_mass[value_gen_n] = g->mass();
+          value_gen_pdgid[value_gen_n] = g->pdgId();
+          value_gen_status[value_gen_n] = g->status();
+          value_tau_genpartidx[m - selectedTaus.begin()] = value_gen_n;
+          value_gen_n++;
+          break;
+        }
+      }
+    }
+
+  } // !isData
 
   // Fill event
   tree->Fill();
