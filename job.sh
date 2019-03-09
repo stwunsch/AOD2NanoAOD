@@ -20,6 +20,13 @@ echo "Output directory:" $OUTPUT_DIR
 CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/ttbar/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
+if [[ $string = *"Run2012"* ]]; then
+    CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/data_cfg.py
+else
+    CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py
+fi
+echo "CMSSW config:" $CONFIG
+
 echo "Hostname:" `hostname`
 
 echo "How am I?" `id`
@@ -39,11 +46,7 @@ eval `scramv1 runtime -sh`
 cd $THIS_DIR
 
 # Copy config file
-if [[ $string = *"Run2012"* ]]; then
-    cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/data_cfg.py cfg.py
-else
-    cp $CMSSW_BASE/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py cfg.py
-fi
+cp $CONFIG cfg.py
 
 # Get lumi mask for data files
 mkdir -p data
