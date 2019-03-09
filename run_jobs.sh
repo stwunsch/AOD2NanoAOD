@@ -22,8 +22,8 @@ PROCESSES=( \
     DY4JetsToLL \
     Run2012B_DoubleMuParked \
     Run2012C_DoubleMuParked \
-    Run2012B_SingleMuParked \
-    Run2012C_SingleMuParked \
+    Run2012B_SingleMu\
+    Run2012C_SingleMu\
     Run2012B_DoubleElectron \
     Run2012C_DoubleElectron \
     )
