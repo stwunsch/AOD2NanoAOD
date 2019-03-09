@@ -17,8 +17,8 @@ echo "File:" $FILE
 OUTPUT_DIR=/ceph/wunsch/cms_opendata_2012_nanoaod_2019-03-08
 echo "Output directory:" $OUTPUT_DIR
 
-CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/CMSSW_5_3_32
-echo "CMSSW base:" $OUTPUT_DIR
+CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/ttbar/CMSSW_5_3_32
+echo "CMSSW base:" $CMSSW_BASE
 
 echo "Hostname:" `hostname`
 
