@@ -20,7 +20,7 @@ echo "Output directory:" $OUTPUT_DIR
 CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/ttbar/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
-if [[ $string = *"Run2012"* ]]; then
+if [[ ${FILE} == *"Run2012"* ]]; then
     CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/data_cfg.py
 else
     CONFIG=${CMSSW_BASE}/src/workspace/AOD2NanoAOD/configs/simulation_cfg.py
