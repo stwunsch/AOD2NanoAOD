@@ -61,7 +61,7 @@ sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" $CONFIG_COPY
 sed -i -e 's,^files.extend,#files.extend,g' $CONFIG_COPY
 
 # Modify CMSSW config to read lumi mask from EOS
-sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/data/workspace/AOD2NanoAOD/Cert,g' $CONFIG_COPY
+sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/workspace/AOD2NanoAOD/data/Cert,g' $CONFIG_COPY
 
 # Modify config to write output directly to EOS
 sed -i -e 's,output.root,'${PROCESS}_${ID}.root',g' $CONFIG_COPY
