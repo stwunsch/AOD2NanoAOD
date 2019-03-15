@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_PATH=/ceph/wunsch/cms_opendata_2012_nanoaod_2019-03-08/
+BASE_PATH=/ceph/wunsch/opendata_files_2019-03-15/
 
 for FOLDER in $(ls $BASE_PATH | grep -v .root)
 do

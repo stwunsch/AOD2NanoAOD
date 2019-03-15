@@ -14,7 +14,7 @@ echo "Process:" $PROCESS
 FILE=$3
 echo "File:" $FILE
 
-OUTPUT_DIR=/ceph/wunsch/cms_opendata_2012_nanoaod_2019-03-08
+OUTPUT_DIR=/ceph/wunsch/opendata_files_2019-03-15
 echo "Output directory:" $OUTPUT_DIR
 
 CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/ttbar/CMSSW_5_3_32
