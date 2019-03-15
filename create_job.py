@@ -17,6 +17,11 @@ queue arguments from arguments.txt\
 """
 
 
+def mkdir(path):
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+
 def parse_arguments():
     if not len(sys.argv) == 3:
         raise Exception("./create_job.py PROCESS PATH_TO_JOBDIR")
@@ -42,10 +47,10 @@ def main(args):
     # Create jobdir and subdirectories
     jobdir = os.path.join(args["jobdir"], process)
     print("Jobdir: %s" % jobdir)
-    os.mkdir(jobdir)
-    os.mkdir(os.path.join(jobdir, "out"))
-    os.mkdir(os.path.join(jobdir, "log"))
-    os.mkdir(os.path.join(jobdir, "err"))
+    mkdir(jobdir)
+    mkdir(os.path.join(jobdir, "out"))
+    mkdir(os.path.join(jobdir, "log"))
+    mkdir(os.path.join(jobdir, "err"))
 
     # Write jdl file
     out = open(os.path.join(jobdir, "job.jdl"), "w")
