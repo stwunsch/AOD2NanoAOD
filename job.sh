@@ -52,21 +52,20 @@ eval `scramv1 runtime -sh`
 cd $THIS_DIR
 
 # Copy config file
-cp $CONFIG cfg.py
-
-# Get lumi mask for data files
-mkdir -p data
-wget https://raw.githubusercontent.com/stwunsch/AOD2NanoAOD/master/data/Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt
-mv Cert_190456-208686_8TeV_22Jan2013ReReco_Collisions12_JSON.txt data/
+mkdir -p configs/
+cp $CONFIG configs/cfg_${ID}.py
 
 # Modify CMSSW config to run only a single file
-sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" cfg.py
-sed -i -e 's,^files.extend,#files.extend,g' cfg.py
+sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" cfg_${ID}.py
+sed -i -e 's,^files.extend,#files.extend,g' cfg_${ID}.py
+
+# Modify CMSSW config to read lumi mask from EOS
+sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/data/workspace/AOD2NanoAOD/Cert,g' cfg_${ID}.py
+
+# Modify config to write output directly to EOS
+sed -i -e 's,output.root,'${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}'.root,g' cfg_${ID}.py
 
 # Run CMSSW config
-cmsRun cfg.py
-
-# Copy output file
-cp output.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+cmsRun cfg_${ID}.py
 
 echo "### End of job"
