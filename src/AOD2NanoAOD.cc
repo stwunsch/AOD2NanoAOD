@@ -42,7 +42,6 @@
 #include "DataFormats/METReco/interface/PFMETFwd.h"
 
 #include "DataFormats/JetReco/interface/PFJet.h"
-#include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/BTauReco/interface/JetTag.h"
 
 #include "DataFormats/TauReco/interface/PFTau.h"
@@ -562,6 +561,7 @@ private:
   int value_tau_decaymode[max_tau];
   float value_tau_chargediso[max_tau];
   float value_tau_neutraliso[max_tau];
+  float value_tau_reliso_all[max_tau];
   int value_tau_genpartidx[max_tau];
   int value_tau_jetidx[max_tau];
 
@@ -593,7 +593,8 @@ private:
   float value_jet_eta[max_jet];
   float value_jet_phi[max_jet];
   float value_jet_mass[max_jet];
-  bool value_jet_puid[max_jet];
+  bool value_jet_looseid[max_jet];
+  bool value_jet_tightid[max_jet];
   float value_jet_btag[max_jet];
 
   // Generator particles
@@ -674,6 +675,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Tau_decayMode", value_tau_decaymode, "Tau_decayMode[nTau]/I");
   tree->Branch("Tau_chargedIso", value_tau_chargediso, "Tau_chargedIso[nTau]/F");
   tree->Branch("Tau_neutralIso", value_tau_neutraliso, "Tau_neutralIso[nTau]/F");
+  tree->Branch("Tau_relIso_all", value_tau_reliso_all, "Tau_relIso_all[nTau]/F");
   tree->Branch("Tau_jetIdx", value_tau_jetidx, "Tau_jetIdx[nTau]/I");
   tree->Branch("Tau_genPartIdx", value_tau_genpartidx, "Tau_genPartIdx[nTau]/I");
 
@@ -703,7 +705,8 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Jet_eta", value_jet_eta, "Jet_eta[nJet]/F");
   tree->Branch("Jet_phi", value_jet_phi, "Jet_phi[nJet]/F");
   tree->Branch("Jet_mass", value_jet_mass, "Jet_mass[nJet]/F");
-  tree->Branch("Jet_puId", value_jet_puid, "Jet_puId[nJet]/O");
+  tree->Branch("Jet_looseId", value_jet_looseid, "Jet_looseId[nJet]/O");
+  tree->Branch("Jet_tightId", value_jet_tightid, "Jet_tightId[nJet]/O");
   tree->Branch("Jet_btag", value_jet_btag, "Jet_btag[nJet]/F");
 
   // Generator particles
@@ -862,6 +865,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_tau_decaymode[value_tau_n] = it->decayMode();
       value_tau_chargediso[value_tau_n] = it->isolationPFChargedHadrCandsPtSum();
       value_tau_neutraliso[value_tau_n] = it->isolationPFGammaCandsEtSum();
+      value_tau_reliso_all[value_tau_n] = (it->isolationPFChargedHadrCandsPtSum() + it->isolationPFGammaCandsEtSum()) / it->pt();
       value_tau_jetidx[value_tau_n] = -1;
       value_tau_genpartidx[value_tau_n] = -1;
       value_tau_n++;
@@ -903,14 +907,18 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   value_met_covyy = cov[1][1];
 
   // Jets
-  Handle<CaloJetCollection> jets;
-  iEvent.getByLabel(InputTag("ak5CaloJets"), jets);
+  // Jet ID recommendations:
+  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#Recommendations_for_8_TeV_data_a
+  // B-tag recommendations:
+  // https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation53XReReco
+  Handle<PFJetCollection> jets;
+  iEvent.getByLabel(InputTag("ak5PFJets"), jets);
   Handle<JetTagCollection> btags;
-  iEvent.getByLabel(InputTag("jetProbabilityBJetTags"), btags);
+  iEvent.getByLabel(InputTag("combinedSecondaryVertexBJetTags"), btags);
 
   const float jet_min_pt = 15;
   value_jet_n = 0;
-  std::vector<CaloJet> selectedJets;
+  std::vector<PFJet> selectedJets;
   for (auto it = jets->begin(); it != jets->end(); it++) {
     if (it->pt() > jet_min_pt) {
       selectedJets.emplace_back(*it);
@@ -918,7 +926,15 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
-      value_jet_puid[value_jet_n] = it->emEnergyFraction() > 0.01 && it->n90() > 1;
+      const auto NHF = it->neutralHadronEnergyFraction();
+      const auto NEMF = it->neutralEmEnergyFraction();
+      const auto CHF = it->chargedHadronEnergyFraction();
+      const auto MUF = it->muonEnergyFraction();
+      const auto CEMF = it->chargedEmEnergyFraction();
+      const auto NumConst = it->chargedMultiplicity()+it->neutralMultiplicity();
+      const auto CHM = it->chargedMultiplicity();
+      value_jet_looseid[value_jet_n] = (NHF<0.99 && NEMF<0.99 && NumConst>1 && MUF<0.8) && ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || std::fabs(it->eta())>2.4);
+      value_jet_tightid[value_jet_n] = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || std::fabs(it->eta())>2.4);
       value_jet_btag[value_jet_n] = btags->operator[](it - jets->begin()).second;
       value_jet_n++;
     }
