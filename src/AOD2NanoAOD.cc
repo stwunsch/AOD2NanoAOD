@@ -933,8 +933,12 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       const auto CEMF = it->chargedEmEnergyFraction();
       const auto NumConst = it->chargedMultiplicity()+it->neutralMultiplicity();
       const auto CHM = it->chargedMultiplicity();
-      value_jet_looseid[value_jet_n] = (NHF<0.99 && NEMF<0.99 && NumConst>1 && MUF<0.8) && ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || std::fabs(it->eta())>2.4);
-      value_jet_tightid[value_jet_n] = (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) && ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || std::fabs(it->eta())>2.4);
+      value_jet_looseid[value_jet_n] =
+          (NHF<0.99 && NEMF<0.99 && NumConst>1 && MUF<0.8) &&
+          ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || std::fabs(it->eta())>2.4);
+      value_jet_tightid[value_jet_n] =
+          (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) &&
+          ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || std::fabs(it->eta())>2.4);
       value_jet_btag[value_jet_n] = btags->operator[](it - jets->begin()).second;
       value_jet_n++;
     }
