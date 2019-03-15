@@ -53,19 +53,26 @@ cd $THIS_DIR
 
 # Copy config file
 mkdir -p configs/
-cp $CONFIG configs/cfg_${ID}.py
+CONFIG_COPY=configs/cfg_${ID}.py
+cp $CONFIG $CONFIG_COPY
 
 # Modify CMSSW config to run only a single file
-sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" cfg_${ID}.py
-sed -i -e 's,^files.extend,#files.extend,g' cfg_${ID}.py
+sed -i -e "s,^files =,files = ['"${FILE}"'] #,g" $CONFIG_COPY
+sed -i -e 's,^files.extend,#files.extend,g' $CONFIG_COPY
 
 # Modify CMSSW config to read lumi mask from EOS
-sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/data/workspace/AOD2NanoAOD/Cert,g' cfg_${ID}.py
+sed -i -e 's,data/Cert,'${CMSSW_BASE}'/src/data/workspace/AOD2NanoAOD/Cert,g' $CONFIG_COPY
 
 # Modify config to write output directly to EOS
-sed -i -e 's,output.root,'${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}'.root,g' cfg_${ID}.py
+sed -i -e 's,output.root,'${PROCESS}_${ID}.root',g' $CONFIG_COPY
+
+# Print config
+cat $CONFIG_COPY
 
 # Run CMSSW config
-cmsRun cfg_${ID}.py
+cmsRun $CONFIG_COPY
+
+# Copy output file
+cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
 
 echo "### End of job"
