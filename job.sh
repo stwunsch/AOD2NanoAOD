@@ -14,10 +14,13 @@ echo "Process:" $PROCESS
 FILE=$3
 echo "File:" $FILE
 
-OUTPUT_DIR=/eos/home-s/swunsch/opendata_files/
+EOS_HOME=/eos/home-s/swunsch
+echo "EOS home:" $EOS_HOME
+
+OUTPUT_DIR=${EOS_HOME}/opendata_files/
 echo "Output directory:" $OUTPUT_DIR
 
-CMSSW_BASE=/eos/home-s/swunsch/opendata_cmssw/CMSSW_5_3_32
+CMSSW_BASE=${EOS_HOME}/opendata_cmssw/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
 if [[ ${FILE} == *"Run2012"* ]]; then
@@ -34,6 +37,9 @@ echo "How am I?" `id`
 echo "Where am I?" `pwd`
 
 echo "### Start working"
+
+# Trigger auto mount of EOS
+ls -la $EOS_HOME
 
 # Make output directory
 mkdir -p ${OUTPUT_DIR}/${PROCESS}
