@@ -14,10 +14,10 @@ echo "Process:" $PROCESS
 FILE=$3
 echo "File:" $FILE
 
-OUTPUT_DIR=/ceph/wunsch/opendata_files_2019-03-15
+OUTPUT_DIR=/eos/home-s/swunsch/opendata_files/
 echo "Output directory:" $OUTPUT_DIR
 
-CMSSW_BASE=/portal/ekpbms2/home/wunsch/workspace/ttbar/CMSSW_5_3_32
+CMSSW_BASE=/eos/home-s/swunsch/opendata_cmssw/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
 if [[ ${FILE} == *"Run2012"* ]]; then

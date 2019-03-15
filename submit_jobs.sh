@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define path for job directories
-BASE_PATH=/ceph/wunsch/opendata_jobs_2019-03-15
+BASE_PATH=/afs/cern.ch/user/s/swunsch/opendata_jobs
 mkdir -p $BASE_PATH
 
 # Set processes
@@ -31,7 +31,7 @@ PROCESSES=( \
 # Create JDL files and job directories
 for PROCESS in ${PROCESSES[@]}
 do
-    ./create_jdl.py $PROCESS $BASE_PATH/$PROCESS
+    python create_job.py $PROCESS $BASE_PATH
 done
 
 # Submit jobs
