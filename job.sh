@@ -73,6 +73,7 @@ cat $CONFIG_COPY
 cmsRun $CONFIG_COPY
 
 # Copy output file
-mv ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+rm ${PROCESS}_${ID}.root
 
 echo "### End of job"
