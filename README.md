@@ -16,7 +16,7 @@ cd CMSSW_5_3_32/src
 cmsenv
 mkdir workspace
 cd workspace
-git clone <THIS REPOSITORY> aod2nanoaod
-cd aod2nanoaod
+git clone <THIS REPOSITORY>
+cd AOD2NanoAOD
 scram b -j8
 ```
