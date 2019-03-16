@@ -36,6 +36,8 @@ echo "How am I?" `id`
 
 echo "Where am I?" `pwd`
 
+echo "What is my system?" `uname -a`
+
 echo "### Start working"
 
 # Trigger auto mount of EOS
