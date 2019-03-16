@@ -7,7 +7,7 @@ import sys
 
 jdl = """\
 universe = vanilla
-executable = ./job.sh
+executable = ./{PROCESS}.sh
 output = out/$(ProcId).$(ClusterID).out
 error = err/$(ProcId).$(ClusterID).err
 log = log/$(ProcId).$(ClusterID).log
@@ -55,7 +55,7 @@ def main(args):
 
     # Write jdl file
     out = open(os.path.join(jobdir, "job.jdl"), "w")
-    out.write(jdl)
+    out.write(jdl.format(PROCESS=process))
     out.close()
 
     # Write argument list
@@ -66,7 +66,7 @@ def main(args):
 
     # Write job file
     jobfile = open("job.sh", "r").read()
-    job = open(os.path.join(jobdir, "job.sh"), "w")
+    job = open(os.path.join(jobdir, "{PROCESS}.sh".format(PROCESS=process)), "w")
     job.write(jobfile)
     job.close()
 

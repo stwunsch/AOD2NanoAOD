@@ -20,7 +20,7 @@ echo "EOS home:" $EOS_HOME
 OUTPUT_DIR=${EOS_HOME}/opendata_files/
 echo "Output directory:" $OUTPUT_DIR
 
-CMSSW_BASE=${EOS_HOME}/opendata_cmssw/CMSSW_5_3_32
+CMSSW_BASE=/afs/cern.ch/user/s/swunsch/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
 if [[ ${FILE} == *"Run2012"* ]]; then
@@ -73,6 +73,6 @@ cat $CONFIG_COPY
 cmsRun $CONFIG_COPY
 
 # Copy output file
-cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+mv ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
 
 echo "### End of job"
