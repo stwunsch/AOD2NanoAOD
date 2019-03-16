@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define path for job directories
-BASE_PATH=/afs/cern.ch/user/s/swunsch/opendata_jobs
+BASE_PATH=/afs/cern.ch/work/s/swunsch/opendata_jobs
 mkdir -p $BASE_PATH
 
 # Set processes

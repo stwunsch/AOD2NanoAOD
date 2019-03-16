@@ -20,7 +20,7 @@ echo "EOS home:" $EOS_HOME
 OUTPUT_DIR=${EOS_HOME}/opendata_files/
 echo "Output directory:" $OUTPUT_DIR
 
-CMSSW_BASE=/afs/cern.ch/user/s/swunsch/CMSSW_5_3_32
+CMSSW_BASE=/afs/cern.ch/work/s/swunsch/CMSSW_5_3_32
 echo "CMSSW base:" $CMSSW_BASE
 
 if [[ ${FILE} == *"Run2012"* ]]; then
