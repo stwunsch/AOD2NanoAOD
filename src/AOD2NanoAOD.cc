@@ -41,7 +41,7 @@
 #include "DataFormats/METReco/interface/PFMET.h"
 #include "DataFormats/METReco/interface/PFMETFwd.h"
 
-#include "DataFormats/JetReco/interface/PFJet.h"
+#include "DataFormats/JetReco/interface/CaloJet.h"
 #include "DataFormats/BTauReco/interface/JetTag.h"
 
 #include "DataFormats/TauReco/interface/PFTau.h"
@@ -593,8 +593,7 @@ private:
   float value_jet_eta[max_jet];
   float value_jet_phi[max_jet];
   float value_jet_mass[max_jet];
-  bool value_jet_looseid[max_jet];
-  bool value_jet_tightid[max_jet];
+  bool value_jet_puid[max_jet];
   float value_jet_btag[max_jet];
 
   // Generator particles
@@ -705,8 +704,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Jet_eta", value_jet_eta, "Jet_eta[nJet]/F");
   tree->Branch("Jet_phi", value_jet_phi, "Jet_phi[nJet]/F");
   tree->Branch("Jet_mass", value_jet_mass, "Jet_mass[nJet]/F");
-  tree->Branch("Jet_looseId", value_jet_looseid, "Jet_looseId[nJet]/O");
-  tree->Branch("Jet_tightId", value_jet_tightid, "Jet_tightId[nJet]/O");
+  tree->Branch("Jet_puId", value_jet_puid, "Jet_puId[nJet]/O");
   tree->Branch("Jet_btag", value_jet_btag, "Jet_btag[nJet]/F");
 
   // Generator particles
@@ -911,14 +909,14 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   // https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetID#Recommendations_for_8_TeV_data_a
   // B-tag recommendations:
   // https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation53XReReco
-  Handle<PFJetCollection> jets;
-  iEvent.getByLabel(InputTag("ak5PFJets"), jets);
+  Handle<CaloJetCollection> jets;
+  iEvent.getByLabel(InputTag("ak5CaloJets"), jets);
   Handle<JetTagCollection> btags;
   iEvent.getByLabel(InputTag("combinedSecondaryVertexBJetTags"), btags);
 
   const float jet_min_pt = 15;
   value_jet_n = 0;
-  std::vector<PFJet> selectedJets;
+  std::vector<CaloJet> selectedJets;
   for (auto it = jets->begin(); it != jets->end(); it++) {
     if (it->pt() > jet_min_pt) {
       selectedJets.emplace_back(*it);
@@ -926,19 +924,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_jet_eta[value_jet_n] = it->eta();
       value_jet_phi[value_jet_n] = it->phi();
       value_jet_mass[value_jet_n] = it->mass();
-      const auto NHF = it->neutralHadronEnergyFraction();
-      const auto NEMF = it->neutralEmEnergyFraction();
-      const auto CHF = it->chargedHadronEnergyFraction();
-      const auto MUF = it->muonEnergyFraction();
-      const auto CEMF = it->chargedEmEnergyFraction();
-      const auto NumConst = it->chargedMultiplicity()+it->neutralMultiplicity();
-      const auto CHM = it->chargedMultiplicity();
-      value_jet_looseid[value_jet_n] =
-          (NHF<0.99 && NEMF<0.99 && NumConst>1 && MUF<0.8) &&
-          ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.99) || std::fabs(it->eta())>2.4);
-      value_jet_tightid[value_jet_n] =
-          (NHF<0.90 && NEMF<0.90 && NumConst>1 && MUF<0.8) &&
-          ((std::fabs(it->eta())<=2.4 && CHF>0 && CHM>0 && CEMF<0.90) || std::fabs(it->eta())>2.4);
+      value_jet_puid[value_jet_n] = it->emEnergyFraction() > 0.01 && it->n90() > 1;
       value_jet_btag[value_jet_n] = btags->operator[](it - jets->begin()).second;
       value_jet_n++;
     }
