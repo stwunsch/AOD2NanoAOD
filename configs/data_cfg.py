@@ -8,7 +8,7 @@ process.load("Configuration.StandardSequences.MagneticField_cff")
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
-process.MessageLogger.cerr.threshold = "INFO"
+process.MessageLogger.cerr.threshold = "WARNING"
 process.MessageLogger.categories.append("AOD2NanoAOD")
 process.MessageLogger.cerr.INFO = cms.untracked.PSet(
     limit=cms.untracked.int32(-1))
