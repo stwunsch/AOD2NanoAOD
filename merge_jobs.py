@@ -61,15 +61,18 @@ def main(input_dir):
             missing_file = True
 
     # Try to open files and see whether they are corrupted
+    count_zombies = 0
     for i in files:
         tfile = ROOT.TFile(files[i])
         if tfile.IsZombie():
             argument_list.append("%u %s %s"%(i, process, filelist_combined[i]))
             print("Found zombie file with ID %u."%(i))
             missing_file = True
+            count_zombies += 1
         tfile.Close()
 
     print("Found %u files of %u expected files in input directory."%(len(files), count_expected))
+    print("Found %u zombie files of %u files in input directory."%(count_zombies, len(files)))
     if missing_file:
         path_list = "arguments.txt"
         out_list = open(path_list, "w")
