@@ -14,7 +14,7 @@ echo "Process:" $PROCESS
 FILE=$3
 echo "File:" $FILE
 
-EOS_HOME=/eos/user/s/swunsch
+EOS_HOME=/eos/home-s/swunsch
 echo "EOS home:" $EOS_HOME
 
 OUTPUT_DIR=${EOS_HOME}/opendata_files/
@@ -41,7 +41,7 @@ echo "What is my system?" `uname -a`
 echo "### Start working"
 
 # Trigger auto mount of EOS
-ls -la $EOS_HOME
+ls -la $OUTPUT_DIR
 
 # Make output directory
 mkdir -p ${OUTPUT_DIR}/${PROCESS}
