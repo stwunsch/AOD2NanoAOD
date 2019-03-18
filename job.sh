@@ -75,7 +75,7 @@ cat $CONFIG_COPY
 cmsRun $CONFIG_COPY
 
 # Copy output file
-cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+eoscp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
 rm ${PROCESS}_${ID}.root
 
 echo "### End of job"
