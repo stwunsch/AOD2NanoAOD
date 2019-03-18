@@ -47,6 +47,7 @@ def main(input_dir):
     # Go through files and find missing ones
     files = {}
     for f in os.listdir(input_dir):
+        if f[0] == ".": continue
         if not process+"_" in f:
             raise Exception("File %s does not match job file."%(f))
         n = re.search("%s_(.*).root"%(process), f).group(1)
