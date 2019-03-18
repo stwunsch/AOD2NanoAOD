@@ -41,7 +41,7 @@ echo "What is my system?" `uname -a`
 echo "### Start working"
 
 # Trigger auto mount of EOS
-ls -la $OUTPUT_DIR
+ls -la $EOS_HOME
 
 # Make output directory
 mkdir -p ${OUTPUT_DIR}/${PROCESS}
