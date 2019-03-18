@@ -14,7 +14,7 @@ echo "Process:" $PROCESS
 FILE=$3
 echo "File:" $FILE
 
-EOS_HOME=/eos/home-s/swunsch
+EOS_HOME=/eos/user/s/swunsch
 echo "EOS home:" $EOS_HOME
 
 OUTPUT_DIR=${EOS_HOME}/opendata_files/
@@ -75,7 +75,7 @@ cat $CONFIG_COPY
 cmsRun $CONFIG_COPY
 
 # Copy output file
-cp ${PROCESS}_${ID}.root ${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
+xrdcp -f ${PROCESS}_${ID}.root root://eosuser.cern.ch/${OUTPUT_DIR}/${PROCESS}/${PROCESS}_${ID}.root
 rm ${PROCESS}_${ID}.root
 
 echo "### End of job"
