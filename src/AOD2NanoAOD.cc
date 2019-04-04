@@ -45,6 +45,7 @@
 #include "DataFormats/BTauReco/interface/JetTag.h"
 
 #include "DataFormats/TauReco/interface/PFTau.h"
+#include "DataFormats/TauReco/interface/PFTauDiscriminator.h"
 #include "DataFormats/TauReco/interface/PFTauFwd.h"
 
 #include "DataFormats/VertexReco/interface/Vertex.h"
@@ -141,11 +142,21 @@ private:
   float value_tau_mass[max_tau];
   int value_tau_charge[max_tau];
   int value_tau_decaymode[max_tau];
-  float value_tau_chargediso[max_tau];
-  float value_tau_neutraliso[max_tau];
   float value_tau_reliso_all[max_tau];
   int value_tau_genpartidx[max_tau];
   int value_tau_jetidx[max_tau];
+  bool value_tau_iddecaymode[max_tau];
+  float value_tau_idisoraw[max_tau];
+  bool value_tau_idisovloose[max_tau];
+  bool value_tau_idisoloose[max_tau];
+  bool value_tau_idisomedium[max_tau];
+  bool value_tau_idisotight[max_tau];
+  bool value_tau_idantieleloose[max_tau];
+  bool value_tau_idantielemedium[max_tau];
+  bool value_tau_idantieletight[max_tau];
+  bool value_tau_idantimuloose[max_tau];
+  bool value_tau_idantimumedium[max_tau];
+  bool value_tau_idantimutight[max_tau];
 
   // Photons
   const static int max_ph = 1000;
@@ -254,11 +265,21 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Tau_mass", value_tau_mass, "Tau_mass[nTau]/F");
   tree->Branch("Tau_charge", value_tau_charge, "Tau_charge[nTau]/I");
   tree->Branch("Tau_decayMode", value_tau_decaymode, "Tau_decayMode[nTau]/I");
-  tree->Branch("Tau_chargedIso", value_tau_chargediso, "Tau_chargedIso[nTau]/F");
-  tree->Branch("Tau_neutralIso", value_tau_neutraliso, "Tau_neutralIso[nTau]/F");
   tree->Branch("Tau_relIso_all", value_tau_reliso_all, "Tau_relIso_all[nTau]/F");
   tree->Branch("Tau_jetIdx", value_tau_jetidx, "Tau_jetIdx[nTau]/I");
   tree->Branch("Tau_genPartIdx", value_tau_genpartidx, "Tau_genPartIdx[nTau]/I");
+  tree->Branch("Tau_idDecayMode", value_tau_iddecaymode, "Tau_idDecayMode[nTau]/O");
+  tree->Branch("Tau_idIsoRaw", value_tau_idisoraw, "Tau_idIsoRaw[nTau]/F");
+  tree->Branch("Tau_idIsoVLoose", value_tau_idisovloose, "Tau_idIsoVLoose[nTau]/O");
+  tree->Branch("Tau_idIsoLoose", value_tau_idisoloose, "Tau_idIsoLoose[nTau]/O");
+  tree->Branch("Tau_idIsoMedium", value_tau_idisomedium, "Tau_idIsoMedium[nTau]/O");
+  tree->Branch("Tau_idIsoTight", value_tau_idisotight, "Tau_idIsoTight[nTau]/O");
+  tree->Branch("Tau_idAntiEleLoose", value_tau_idantieleloose, "Tau_idAntiEleLoose[nTau]/O");
+  tree->Branch("Tau_idAntiEleMedium", value_tau_idantielemedium, "Tau_idAntiEleMedium[nTau]/O");
+  tree->Branch("Tau_idAntiEleTight", value_tau_idantieletight, "Tau_idAntiEleTight[nTau]/O");
+  tree->Branch("Tau_idAntiMuLoose", value_tau_idantimuloose, "Tau_idAntiMuLoose[nTau]/O");
+  tree->Branch("Tau_idAntiMuMedium", value_tau_idantimumedium, "Tau_idAntiMuMedium[nTau]/O");
+  tree->Branch("Tau_idAntiMuTight", value_tau_idantimutight, "Tau_idAntiMuTight[nTau]/O");
 
   // Photons
   tree->Branch("nPhoton", &value_ph_n, "nPhoton/i");
@@ -269,7 +290,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Photon_charge", value_ph_charge, "Photon_charge[nPhoton]/I");
   tree->Branch("Photon_pfRelIso03_all", value_ph_pfreliso03all, "Photon_pfRelIso03_all[nPhoton]/F");
   tree->Branch("Photon_jetIdx", value_ph_jetidx, "Photon_jetIdx[nPhoton]/I");
-  tree->Branch("Photon_genPartIdx", value_tau_genpartidx, "Photon_genPartIdx[nPhoton]/I");
+  tree->Branch("Photon_genPartIdx", value_ph_genpartidx, "Photon_genPartIdx[nPhoton]/I");
 
   // MET
   tree->Branch("MET_pt", &value_met_pt, "MET_pt/F");
@@ -434,8 +455,44 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
   }
 
   // Taus
+  // References for Tau collections and IDs:
+  // https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuidePFTauID#53X
+  // https://twiki.cern.ch/twiki/bin/view/CMSPublic/NutShellRecipeFor5312AndNewer
   Handle<PFTauCollection> taus;
   iEvent.getByLabel(InputTag("hpsPFTauProducer"), taus);
+
+  Handle<PFTauDiscriminator> tausLooseIso, tausVLooseIso, tausMediumIso, tausTightIso,
+                             tausDecayMode, tausLooseEleRej, tausMediumEleRej,
+                             tausTightEleRej, tausLooseMuonRej, tausMediumMuonRej,
+                             tausTightMuonRej, tausRawIso;
+
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByDecayModeFinding"),
+          tausDecayMode);
+
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByRawCombinedIsolationDBSumPtCorr"),
+          tausRawIso);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByVLooseCombinedIsolationDBSumPtCorr"),
+          tausVLooseIso);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByLooseCombinedIsolationDBSumPtCorr"),
+          tausLooseIso);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByMediumCombinedIsolationDBSumPtCorr"),
+          tausMediumIso);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByTightCombinedIsolationDBSumPtCorr"),
+          tausTightIso);
+
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByLooseElectronRejection"),
+          tausLooseEleRej);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByMediumElectronRejection"),
+          tausMediumEleRej);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByTightElectronRejection"),
+          tausTightEleRej);
+
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByLooseMuonRejection"),
+          tausLooseMuonRej);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByMediumMuonRejection"),
+          tausMediumMuonRej);
+  iEvent.getByLabel(InputTag("hpsPFTauDiscriminationByTightMuonRejection"),
+          tausTightMuonRej);
 
   const float tau_min_pt = 15;
   value_tau_n = 0;
@@ -449,8 +506,21 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_tau_charge[value_tau_n] = it->charge();
       value_tau_mass[value_tau_n] = it->mass();
       value_tau_decaymode[value_tau_n] = it->decayMode();
-      value_tau_chargediso[value_tau_n] = it->isolationPFChargedHadrCandsPtSum();
-      value_tau_neutraliso[value_tau_n] = it->isolationPFGammaCandsEtSum();
+      // Discriminators
+      const auto idx = it - taus->begin();
+      value_tau_iddecaymode[value_tau_n] = tausDecayMode->operator[](idx).second;
+      value_tau_idisoraw[value_tau_n] = tausRawIso->operator[](idx).second;
+      value_tau_idisovloose[value_tau_n] = tausVLooseIso->operator[](idx).second;
+      value_tau_idisoloose[value_tau_n] = tausLooseIso->operator[](idx).second;
+      value_tau_idisomedium[value_tau_n] = tausMediumIso->operator[](idx).second;
+      value_tau_idisotight[value_tau_n] = tausTightIso->operator[](idx).second;
+      value_tau_idantieleloose[value_tau_n] = tausLooseEleRej->operator[](idx).second;
+      value_tau_idantielemedium[value_tau_n] = tausMediumEleRej->operator[](idx).second;
+      value_tau_idantieletight[value_tau_n] = tausTightEleRej->operator[](idx).second;
+      value_tau_idantimuloose[value_tau_n] = tausLooseMuonRej->operator[](idx).second;
+      value_tau_idantimumedium[value_tau_n] = tausMediumMuonRej->operator[](idx).second;
+      value_tau_idantimutight[value_tau_n] = tausTightMuonRej->operator[](idx).second;
+
       value_tau_reliso_all[value_tau_n] = (it->isolationPFChargedHadrCandsPtSum() + it->isolationPFGammaCandsEtSum()) / it->pt();
       value_tau_jetidx[value_tau_n] = -1;
       value_tau_genpartidx[value_tau_n] = -1;
