@@ -2,6 +2,7 @@
 
 import ROOT
 ROOT.PyConfig.IgnoreCommandLineOptions = True
+ROOT.gROOT.SetBatch(True)
 import os
 import sys
 import re
