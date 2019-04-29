@@ -17,11 +17,13 @@ PROCESSES=( \
     W2JetsToLNu \
     W3JetsToLNu \
     DYJetsToLL \
+    Run2012B_TauPlusX\
+    Run2012C_TauPlusX\
     #DY2JetsToLL \
     #DY3JetsToLL \
     #DY4JetsToLL \
-    Run2012B_SingleMu\
-    Run2012C_SingleMu\
+    #Run2012B_SingleMu\
+    #Run2012C_SingleMu\
     #Run2012B_DoubleMuParked \
     #Run2012C_DoubleMuParked \
     #Run2012B_DoubleElectron \
