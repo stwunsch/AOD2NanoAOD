@@ -67,6 +67,34 @@ const static std::vector<std::string> interestingTriggers = {
     "HLT_IsoMu17_eta2p1_LooseIsoPFTau20",
 };
 
+template <typename T>
+void subtractInvisible(reco::Candidate::LorentzVector &p4, T &x) {
+  for (auto d = x->begin(); d != x->end(); d++) {
+    const auto pdgId = d->pdgId();
+    if (std::abs(pdgId) == 12 || std::abs(pdgId) == 14 ||
+        std::abs(pdgId) == 16 || std::abs(pdgId) == 18) {
+      p4 = p4 - d->p4();
+    }
+    subtractInvisible(p4, d);
+  }
+}
+
+template <typename T>
+int findBestMatch(T& gens, reco::Candidate::LorentzVector& p4, bool subtract_invisible = false) {
+  float minDeltaR = 999.0;
+  int idx = -1;
+  for (auto g = gens.begin(); g != gens.end(); g++) {
+    auto tmp_p4 = g->p4();
+    if (subtract_invisible) subtractInvisible(tmp_p4, g);
+    const auto tmp = deltaR(tmp_p4, p4);
+    if (tmp < minDeltaR) {
+      minDeltaR = tmp;
+      idx = g - gens.begin();
+    }
+  }
+  return idx;
+}
+
 class AOD2NanoAOD : public edm::EDAnalyzer {
 public:
   explicit AOD2NanoAOD(const edm::ParameterSet &);
@@ -594,130 +622,106 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     iEvent.getByLabel(InputTag("genParticles"), gens);
 
     value_gen_n = 0;
-    std::vector<GenParticle> interestingGenMuons;
-    std::vector<GenParticle> interestingGenElectrons;
-    std::vector<GenParticle> interestingGenPhotons;
-    std::vector<GenParticle> interestingGenTaus;
+    std::vector<GenParticle> interestingGenParticles;
     for (auto it = gens->begin(); it != gens->end(); it++) {
       const auto status = it->status();
       const auto pdgId = std::abs(it->pdgId());
       if (status == 1 && pdgId == 13) { // muon
-        interestingGenMuons.emplace_back(*it);
+        interestingGenParticles.emplace_back(*it);
       }
       if (status == 1 && pdgId == 11) { // electron
-        interestingGenElectrons.emplace_back(*it);
+        interestingGenParticles.emplace_back(*it);
       }
       if (status == 1 && pdgId == 22) { // photon
-        interestingGenPhotons.emplace_back(*it);
+        interestingGenParticles.emplace_back(*it);
       }
       if (status == 2 && pdgId == 15) { // tau
-        interestingGenTaus.emplace_back(*it);
+        interestingGenParticles.emplace_back(*it);
       }
     }
 
     // Match muons with gen particles and jets
-    const auto deltaRMax = 0.3;
-    for (auto m = selectedMuons.begin(); m != selectedMuons.end(); m++) {
+    for (auto p = selectedMuons.begin(); p != selectedMuons.end(); p++) {
       // Gen particle matching
-      for (auto g = interestingGenMuons.begin(); g != interestingGenMuons.end(); g++) {
-        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
-          value_gen_pt[value_gen_n] = g->pt();
-          value_gen_eta[value_gen_n] = g->eta();
-          value_gen_phi[value_gen_n] = g->phi();
-          value_gen_mass[value_gen_n] = g->mass();
-          value_gen_pdgid[value_gen_n] = g->pdgId();
-          value_gen_status[value_gen_n] = g->status();
-          value_mu_genpartidx[m - selectedMuons.begin()] = value_gen_n;
-          value_gen_n++;
-          break;
-        }
+      auto p4 = p->p4();
+      auto idx = findBestMatch(interestingGenParticles, p4);
+      if (idx != -1) {
+        auto g = interestingGenParticles.begin() + idx;
+        value_gen_pt[value_gen_n] = g->pt();
+        value_gen_eta[value_gen_n] = g->eta();
+        value_gen_phi[value_gen_n] = g->phi();
+        value_gen_mass[value_gen_n] = g->mass();
+        value_gen_pdgid[value_gen_n] = g->pdgId();
+        value_gen_status[value_gen_n] = g->status();
+        value_mu_genpartidx[p - selectedMuons.begin()] = value_gen_n;
+        value_gen_n++;
       }
+
       // Jet matching
-      for(auto j = selectedJets.begin(); j != selectedJets.end(); j++) {
-        if (deltaR(m->p4(), j->p4()) < deltaRMax) {
-          value_mu_jetidx[m - selectedMuons.begin()] = j - selectedJets.begin();
-        }
-      }
+      value_mu_jetidx[p - selectedMuons.begin()] = findBestMatch(selectedJets, p4);
     }
 
     // Match electrons with gen particles and jets
-    for (auto m = selectedElectrons.begin(); m != selectedElectrons.end(); m++) {
+    for (auto p = selectedElectrons.begin(); p != selectedElectrons.end(); p++) {
       // Gen particle matching
-      for (auto g = interestingGenElectrons.begin(); g != interestingGenElectrons.end(); g++) {
-        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
-          value_gen_pt[value_gen_n] = g->pt();
-          value_gen_eta[value_gen_n] = g->eta();
-          value_gen_phi[value_gen_n] = g->phi();
-          value_gen_mass[value_gen_n] = g->mass();
-          value_gen_pdgid[value_gen_n] = g->pdgId();
-          value_gen_status[value_gen_n] = g->status();
-          value_el_genpartidx[m - selectedElectrons.begin()] = value_gen_n;
-          value_gen_n++;
-          break;
-        }
+      auto p4 = p->p4();
+      auto idx = findBestMatch(interestingGenParticles, p4);
+      if (idx != -1) {
+        auto g = interestingGenParticles.begin() + idx;
+        value_gen_pt[value_gen_n] = g->pt();
+        value_gen_eta[value_gen_n] = g->eta();
+        value_gen_phi[value_gen_n] = g->phi();
+        value_gen_mass[value_gen_n] = g->mass();
+        value_gen_pdgid[value_gen_n] = g->pdgId();
+        value_gen_status[value_gen_n] = g->status();
+        value_el_genpartidx[p - selectedElectrons.begin()] = value_gen_n;
+        value_gen_n++;
       }
+
       // Jet matching
-      for(auto j = selectedJets.begin(); j != selectedJets.end(); j++) {
-        if (deltaR(m->p4(), j->p4()) < deltaRMax) {
-          value_el_jetidx[m - selectedElectrons.begin()] = j - selectedJets.begin();
-        }
-      }
+      value_el_jetidx[p - selectedElectrons.begin()] = findBestMatch(selectedJets, p4);
     }
 
    // Match photons with gen particles and jets
-    for (auto m = selectedPhotons.begin(); m != selectedPhotons.end(); m++) {
+    for (auto p = selectedPhotons.begin(); p != selectedPhotons.end(); p++) {
       // Gen particle matching
-      for (auto g = interestingGenPhotons.begin(); g != interestingGenPhotons.end(); g++) {
-        if (deltaR(m->p4(), g->p4()) < deltaRMax) {
-          value_gen_pt[value_gen_n] = g->pt();
-          value_gen_eta[value_gen_n] = g->eta();
-          value_gen_phi[value_gen_n] = g->phi();
-          value_gen_mass[value_gen_n] = g->mass();
-          value_gen_pdgid[value_gen_n] = g->pdgId();
-          value_gen_status[value_gen_n] = g->status();
-          value_ph_genpartidx[m - selectedPhotons.begin()] = value_gen_n;
-          value_gen_n++;
-          break;
-        }
+      auto p4 = p->p4();
+      auto idx = findBestMatch(interestingGenParticles, p4);
+      if (idx != -1) {
+        auto g = interestingGenParticles.begin() + idx;
+        value_gen_pt[value_gen_n] = g->pt();
+        value_gen_eta[value_gen_n] = g->eta();
+        value_gen_phi[value_gen_n] = g->phi();
+        value_gen_mass[value_gen_n] = g->mass();
+        value_gen_pdgid[value_gen_n] = g->pdgId();
+        value_gen_status[value_gen_n] = g->status();
+        value_ph_genpartidx[p - selectedPhotons.begin()] = value_gen_n;
+        value_gen_n++;
       }
+
       // Jet matching
-      for(auto j = selectedJets.begin(); j != selectedJets.end(); j++) {
-        if (deltaR(m->p4(), j->p4()) < deltaRMax) {
-          value_ph_jetidx[m - selectedPhotons.begin()] = j - selectedJets.begin();
-        }
-      }
+      value_ph_jetidx[p - selectedPhotons.begin()] = findBestMatch(selectedJets, p4);
     }
 
     // Match taus with gen particles and jets
-    for (auto m = selectedTaus.begin(); m != selectedTaus.end(); m++) {
+    for (auto p = selectedTaus.begin(); p != selectedTaus.end(); p++) {
       // Gen particle matching
-      for (auto g = interestingGenTaus.begin(); g != interestingGenTaus.end(); g++) {
-        // Subtract neutrinos from generator particle
-        auto p4 = g->p4();
-        for (auto d = g->begin(); d != g->end(); d++) {
-          const auto pdgId = d->pdgId();
-          if (pdgId == 12 || pdgId == 14 || pdgId == 16 || pdgId == 18) {
-            p4 -= d->p4();
-          }
-        }
-        if (deltaR(m->p4(), p4) < deltaRMax) {
-          value_gen_pt[value_gen_n] = g->pt();
-          value_gen_eta[value_gen_n] = g->eta();
-          value_gen_phi[value_gen_n] = g->phi();
-          value_gen_mass[value_gen_n] = g->mass();
-          value_gen_pdgid[value_gen_n] = g->pdgId();
-          value_gen_status[value_gen_n] = g->status();
-          value_tau_genpartidx[m - selectedTaus.begin()] = value_gen_n;
-          value_gen_n++;
-          break;
-        }
+      auto p4 = p->p4();
+      auto idx = findBestMatch(interestingGenParticles, p4, true); // TODO: Subtract the invisible parts only once.
+      if (idx != -1) {
+        auto g = interestingGenParticles.begin() + idx;
+        value_gen_pt[value_gen_n] = g->pt();
+        value_gen_eta[value_gen_n] = g->eta();
+        value_gen_phi[value_gen_n] = g->phi();
+        value_gen_mass[value_gen_n] = g->mass();
+        value_gen_pdgid[value_gen_n] = g->pdgId();
+        value_gen_status[value_gen_n] = g->status();
+        value_tau_genpartidx[p - selectedTaus.begin()] = value_gen_n;
+        value_gen_n++;
       }
+
       // Jet matching
-      for(auto j = selectedJets.begin(); j != selectedJets.end(); j++) {
-        if (deltaR(m->p4(), j->p4()) < deltaRMax) {
-          value_tau_jetidx[m - selectedTaus.begin()] = j - selectedJets.begin();
-        }
-      }
+      value_tau_jetidx[p - selectedTaus.begin()] = findBestMatch(selectedJets, p4);
     }
 
   } // !isData
