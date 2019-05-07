@@ -697,7 +697,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     for (auto p = selectedPhotons.begin(); p != selectedPhotons.end(); p++) {
       // Gen particle matching
       auto p4 = p->p4();
-      auto idx = findBestVisibleMatchMatch(interestingGenParticles, p4);
+      auto idx = findBestVisibleMatch(interestingGenParticles, p4);
       if (idx != -1) {
         auto g = interestingGenParticles.begin() + idx;
         value_gen_pt[value_gen_n] = g->pt();
