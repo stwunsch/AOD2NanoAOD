@@ -73,12 +73,14 @@ int findBestVisibleMatch(T& gens, reco::Candidate::LorentzVector& p4) {
   int idx = -1;
   for (auto g = gens.begin(); g != gens.end(); g++) {
     auto tmp_p4 = g->p4();
-    auto daughters = g->daughterRefVector();
-    for (auto d = daughters.begin(); d != daughters.end(); d++) {
-      const auto pdgId = (*d)->pdgId();
-      if (std::abs(pdgId) == 12 || std::abs(pdgId) == 14 ||
-          std::abs(pdgId) == 16 || std::abs(pdgId) == 18) {
-        tmp_p4 = tmp_p4 - (*d)->p4();
+    if (g->status() != 1) {
+      auto daughters = g->daughterRefVector();
+      for (auto d = daughters.begin(); d != daughters.end(); d++) {
+        const auto pdgId = (*d)->pdgId();
+        if (std::abs(pdgId) == 12 || std::abs(pdgId) == 14 ||
+            std::abs(pdgId) == 16 || std::abs(pdgId) == 18) {
+          tmp_p4 = tmp_p4 - (*d)->p4();
+        }
       }
     }
     const auto tmp = deltaR(tmp_p4, p4);
@@ -653,7 +655,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     for (auto p = selectedMuons.begin(); p != selectedMuons.end(); p++) {
       // Gen particle matching
       auto p4 = p->p4();
-      auto idx = findBestMatch(interestingGenParticles, p4);
+      auto idx = findBestVisibleMatch(interestingGenParticles, p4);
       if (idx != -1) {
         auto g = interestingGenParticles.begin() + idx;
         value_gen_pt[value_gen_n] = g->pt();
@@ -674,7 +676,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     for (auto p = selectedElectrons.begin(); p != selectedElectrons.end(); p++) {
       // Gen particle matching
       auto p4 = p->p4();
-      auto idx = findBestMatch(interestingGenParticles, p4);
+      auto idx = findBestVisibleMatch(interestingGenParticles, p4);
       if (idx != -1) {
         auto g = interestingGenParticles.begin() + idx;
         value_gen_pt[value_gen_n] = g->pt();
@@ -695,7 +697,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     for (auto p = selectedPhotons.begin(); p != selectedPhotons.end(); p++) {
       // Gen particle matching
       auto p4 = p->p4();
-      auto idx = findBestMatch(interestingGenParticles, p4);
+      auto idx = findBestVisibleMatchMatch(interestingGenParticles, p4);
       if (idx != -1) {
         auto g = interestingGenParticles.begin() + idx;
         value_gen_pt[value_gen_n] = g->pt();
