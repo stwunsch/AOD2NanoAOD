@@ -68,21 +68,25 @@ const static std::vector<std::string> interestingTriggers = {
 };
 
 template <typename T>
+void subtractInvisible(T g, reco::Candidate::LorentzVector& p4) {
+  auto daughters = (*g).daughterRefVector();
+  for (auto d = daughters.begin(); d != daughters.end(); d++) {
+    const auto pdgId = (*d)->pdgId();
+    if (std::abs(pdgId) == 12 || std::abs(pdgId) == 14 ||
+        std::abs(pdgId) == 16 || std::abs(pdgId) == 18) {
+      p4 = p4 - (*d)->p4();
+    }
+    subtractInvisible(*d, p4);
+  }
+}
+
+template <typename T>
 int findBestVisibleMatch(T& gens, reco::Candidate::LorentzVector& p4) {
   float minDeltaR = 999.0;
   int idx = -1;
   for (auto g = gens.begin(); g != gens.end(); g++) {
     auto tmp_p4 = g->p4();
-    if (g->status() != 1) {
-      auto daughters = g->daughterRefVector();
-      for (auto d = daughters.begin(); d != daughters.end(); d++) {
-        const auto pdgId = (*d)->pdgId();
-        if (std::abs(pdgId) == 12 || std::abs(pdgId) == 14 ||
-            std::abs(pdgId) == 16 || std::abs(pdgId) == 18) {
-          tmp_p4 = tmp_p4 - (*d)->p4();
-        }
-      }
-    }
+    subtractInvisible(g, tmp_p4);
     const auto tmp = deltaR(tmp_p4, p4);
     if (tmp < minDeltaR) {
       minDeltaR = tmp;
@@ -197,6 +201,7 @@ private:
   bool value_tau_idantimumedium[max_tau];
   bool value_tau_idantimutight[max_tau];
 
+  /*
   // Photons
   const static int max_ph = 1000;
   UInt_t value_ph_n;
@@ -208,6 +213,7 @@ private:
   float value_ph_pfreliso03all[max_ph];
   int value_ph_genpartidx[max_ph];
   int value_ph_jetidx[max_ph];
+  */
 
   // MET
   float value_met_pt;
@@ -320,6 +326,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Tau_idAntiMuMedium", value_tau_idantimumedium, "Tau_idAntiMuMedium[nTau]/O");
   tree->Branch("Tau_idAntiMuTight", value_tau_idantimutight, "Tau_idAntiMuTight[nTau]/O");
 
+  /*
   // Photons
   tree->Branch("nPhoton", &value_ph_n, "nPhoton/i");
   tree->Branch("Photon_pt", value_ph_pt, "Photon_pt[nPhoton]/F");
@@ -330,6 +337,7 @@ AOD2NanoAOD::AOD2NanoAOD(const edm::ParameterSet &iConfig)
   tree->Branch("Photon_pfRelIso03_all", value_ph_pfreliso03all, "Photon_pfRelIso03_all[nPhoton]/F");
   tree->Branch("Photon_jetIdx", value_ph_jetidx, "Photon_jetIdx[nPhoton]/I");
   tree->Branch("Photon_genPartIdx", value_ph_genpartidx, "Photon_genPartIdx[nPhoton]/I");
+  */
 
   // MET
   tree->Branch("MET_pt", &value_met_pt, "MET_pt/F");
@@ -567,6 +575,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
     }
   }
 
+  /*
   // Photons
   Handle<PhotonCollection> photons;
   iEvent.getByLabel(InputTag("photons"), photons);
@@ -588,6 +597,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_ph_n++;
     }
   }
+  */
 
   // MET
   Handle<PFMETCollection> met;
@@ -643,9 +653,11 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       if (status == 1 && pdgId == 11) { // electron
         interestingGenParticles.emplace_back(*it);
       }
+      /*
       if (status == 1 && pdgId == 22) { // photon
         interestingGenParticles.emplace_back(*it);
       }
+      */
       if (status == 2 && pdgId == 15) { // tau
         interestingGenParticles.emplace_back(*it);
       }
@@ -693,6 +705,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       value_el_jetidx[p - selectedElectrons.begin()] = findBestMatch(selectedJets, p4);
     }
 
+   /*
    // Match photons with gen particles and jets
     for (auto p = selectedPhotons.begin(); p != selectedPhotons.end(); p++) {
       // Gen particle matching
@@ -713,6 +726,7 @@ void AOD2NanoAOD::analyze(const edm::Event &iEvent,
       // Jet matching
       value_ph_jetidx[p - selectedPhotons.begin()] = findBestMatch(selectedJets, p4);
     }
+    */
 
     // Match taus with gen particles and jets
     for (auto p = selectedTaus.begin(); p != selectedTaus.end(); p++) {
