@@ -2,6 +2,8 @@
 
 Tool to convert AOD to NanoAOD file format
 
+**TODO: Add link to CERN open data record**
+
 ## Setup CMSSW
 
 ```bash
