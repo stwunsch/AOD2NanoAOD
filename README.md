@@ -1,6 +1,6 @@
 # Convert AOD of CMS Open Data to NanoAOD
 
-TODO: Add top-level description
+Tool to convert AOD to NanoAOD file format
 
 ## Setup CMSSW
 
@@ -19,4 +19,23 @@ cd workspace
 git clone <THIS REPOSITORY>
 cd AOD2NanoAOD
 scram b -j8
+```
+
+## Test configuration locally
+
+```bash
+cmsRun configs/simulation_cfg.py
+cmsRun configs/data_cfg.py
+```
+
+## Create jobs on lxplus
+
+```bash
+./submit_jobs.sh /path/to/job/directory
+```
+
+## Merge job files
+
+```bash
+./merge_jobs.py /path/to/job/outputs
 ```
